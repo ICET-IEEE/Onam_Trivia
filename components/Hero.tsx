@@ -8,7 +8,7 @@ export function Hero() {
       <div className="container-max grid items-center gap-16 lg:grid-cols-2">
         <div className="animate-fade-up">
           <span className="eyebrow rounded-full border border-gold/30 bg-gold/5 px-4 py-1.5">
-            <Sparkles className="h-3.5 w-3.5" />
+            <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
             Onam &bull; Mythology &bull; Puzzles
           </span>
 
