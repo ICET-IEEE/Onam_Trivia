@@ -16,9 +16,11 @@ export default function SignUpPage() {
         </>
       }
     >
-      <form className="flex flex-col gap-5">
+      <form className="flex flex-col gap-2.5">
         <FormField label="Full Name" type="text" placeholder="Your name" autoComplete="name" />
         <FormField label="Email" type="email" placeholder="you@kingdom.com" autoComplete="email" />
+        <FormField label="Mobile Number" type="tel" placeholder="+91 98765 43210" autoComplete="tel"/>
+
         <FormField
           label="Password"
           type="password"
@@ -32,7 +34,7 @@ export default function SignUpPage() {
           autoComplete="new-password"
         />
 
-        <Button variant="primary" className="mt-1 w-full">
+        <Button variant="primary" className="mt-2 w-full">
           Create Your Account
         </Button>
       </form>
