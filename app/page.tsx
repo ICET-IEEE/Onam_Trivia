@@ -17,7 +17,7 @@ export default function Home() {
         <IntroSection />
         <ChaptersSection />
         <ThreeSteps />
-        <TeamSection />
+        {/*<TeamSection /> */}
         <LeaderboardPreview />
         <FinalCTA />
       </main>
