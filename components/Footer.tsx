@@ -23,17 +23,7 @@ export function Footer() {
           </p>
         </div>
 
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:justify-end">
-          {links.map((link) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className="text-sm text-ink-soft transition-colors hover:text-kingdom-green"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        
       </div>
 
       <p className="container-max mt-10 text-center text-xs uppercase tracking-[0.2em] text-ink-faint sm:text-left">
