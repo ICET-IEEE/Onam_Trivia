@@ -50,18 +50,18 @@ export function AuthShell({
   );
 }
 
+import { InputHTMLAttributes } from "react";
+
+interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+}
+
 export function FormField({
   label,
-  type,
-  placeholder,
-  autoComplete,
-}: {
-  label: string;
-  type: string;
-  placeholder: string;
-  autoComplete?: string;
-}) {
-  const id = label.toLowerCase().replace(/\s+/g, "-");
+  id: customId,
+  ...props
+}: FormFieldProps) {
+  const id = customId || label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-ink">
@@ -70,10 +70,8 @@ export function FormField({
       <input
         id={id}
         name={id}
-        type={type}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
         className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink placeholder:text-ink-faint transition-colors focus:border-gold focus:outline-none"
+        {...props}
       />
     </div>
   );
