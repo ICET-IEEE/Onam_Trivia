@@ -23,9 +23,6 @@ export function FinalCTA() {
             <Button href="/signup" variant="primary" withArrow>
               Enter the Trial
             </Button>
-            <Button href="/signup" variant="secondary">
-              Create a Team
-            </Button>
           </div>
         </Reveal>
       </div>
