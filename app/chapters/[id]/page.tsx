@@ -26,11 +26,24 @@ export default async function ChapterPage({ params }: { params: { id: string } }
     notFound();
   }
 
+  const { data: { user } } = await supabase.auth.getUser();
+  let solvedChallengeIds: Set<string> = new Set();
+  if (user) {
+    const { data: userSolves } = await supabase
+      .from('user_solves')
+      .select('challenge_id')
+      .eq('user_id', user.id);
+    if (userSolves) {
+      solvedChallengeIds = new Set(userSolves.map(s => s.challenge_id));
+    }
+  }
+
+  // Fetch published challenges for chapter
   const { data: challengesData } = await supabase
     .from('challenges')
     .select('*')
     .eq('chapter_id', chapter.id)
-    .order('created_at', { ascending: true });
+    .order('order_number', { ascending: true });
 
   const challenges = challengesData || [];
 
@@ -75,26 +88,37 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                     
                     <div className="mt-8 pt-8 border-t border-ink/10">
                       <h3 className="text-xl font-display font-bold text-ink mb-6">Challenges</h3>
-                      {/* This is a placeholder for actual challenges */}
                       <div className="space-y-4">
-                        {challenges.map((challenge, i) => (
-                          <div key={challenge.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-ink/10 bg-ivory-deep/30 gap-4">
-                            <div>
-                              <span className="font-medium text-ink block">{challenge.title}</span>
-                              <span className="text-sm text-ink-soft">{challenge.description}</span>
+                        {challenges.map((challenge) => {
+                          const isSolved = solvedChallengeIds.has(challenge.id);
+                          return (
+                            <div key={challenge.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-ink/10 bg-ivory-deep/30 gap-4">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-ink block">{challenge.title}</span>
+                                  {isSolved && (
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-kingdom-green/10 text-kingdom-green">
+                                      Completed ✓
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-sm text-ink-soft">{challenge.description}</span>
+                              </div>
+                              <div className="flex items-center gap-4 shrink-0">
+                                <span className="text-sm font-semibold text-kingdom-green">{challenge.points} pts</span>
+                                <ChallengeLink 
+                                  challengeId={challenge.id}
+                                  chapterId={params.id}
+                                  className={`text-sm font-semibold transition-colors ${
+                                    isSolved ? "text-kingdom-green hover:text-kingdom-green-deep" : "text-rust hover:text-rust-deep"
+                                  }`}
+                                >
+                                  {isSolved ? "Review Challenge" : "Start Challenge"}
+                                </ChallengeLink>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-4 shrink-0">
-                              <span className="text-sm font-semibold text-kingdom-green">{challenge.points} pts</span>
-                              <ChallengeLink 
-                                challengeId={challenge.id}
-                                chapterId={params.id}
-                                className="text-sm font-semibold text-rust hover:text-rust-deep transition-colors"
-                              >
-                                Start Challenge
-                              </ChallengeLink>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                         {challenges.length === 0 && (
                           <p className="text-ink-soft text-sm">No challenges available yet.</p>
                         )}

@@ -5,16 +5,16 @@ import { ChallengeManagerClient } from "./ChallengeManagerClient";
 export default async function AdminChapterChallengesPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
   
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (!session) {
+  if (!user) {
     redirect("/admin");
   }
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   if (profile?.role !== "admin") {

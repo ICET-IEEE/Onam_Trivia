@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChallengeImage } from "@/components/ChallengeImage";
+import { AnswerSubmission } from "@/components/AnswerSubmission";
 
 export default async function ChallengeDetailPage({ 
   params 
@@ -12,10 +13,10 @@ export default async function ChallengeDetailPage({
 }) {
   const supabase = await createClient();
 
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
   
   // Authentication check must happen before any database queries
-  if (!session) {
+  if (!user) {
     redirect("/signin");
   }
 
@@ -33,7 +34,7 @@ export default async function ChallengeDetailPage({
   // Fetch challenge (RLS prevents viewing unpublished challenges)
   const { data: challenge } = await supabase
     .from('challenges')
-    .select('id, title, description, question, type, difficulty, points, image_url, hint, order_number')
+    .select('id, title, description, question, type, difficulty, points, image_url, audio_url, hint, order_number')
     .eq('id', params.challengeId)
     .eq('chapter_id', chapter.id)
     .single();
@@ -81,11 +82,22 @@ export default async function ChallengeDetailPage({
 
                 <div className="prose prose-lg text-ink max-w-none">
                   <h2 className="text-2xl font-display font-bold text-ink mb-4">The Challenge</h2>
-                  <p className="whitespace-pre-wrap">{challenge.question}</p>
+                  {challenge.question && <p className="whitespace-pre-wrap">{challenge.question}</p>}
                 </div>
 
                 {challenge.image_url && (
                   <ChallengeImage imageUrl={challenge.image_url} title={challenge.title} />
+                )}
+
+                {challenge.audio_url && (
+                  <div className="mt-8 rounded-xl overflow-hidden border border-ivory-line shadow-sm">
+                    <div className="p-4 bg-ivory-deep/30">
+                      <audio controls className="w-full">
+                        <source src={challenge.audio_url} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  </div>
                 )}
 
                 {challenge.hint && (
@@ -95,21 +107,11 @@ export default async function ChallengeDetailPage({
                   </div>
                 )}
 
-                <div className="mt-12 pt-8 border-t border-ink/10">
-                  <label className="block text-sm font-bold text-ink mb-3 uppercase tracking-wider">
-                    Submit Answer
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <input 
-                      type="text" 
-                      placeholder="Enter the flag..."
-                      className="flex-1 rounded-xl border border-ivory-line bg-ivory/50 px-5 py-4 text-ink focus:border-gold focus:bg-white focus:outline-none transition-colors"
-                    />
-                    <button className="bg-gold hover:bg-gold-deep text-white px-8 py-4 rounded-xl font-medium transition-colors whitespace-nowrap">
-                      Submit Flag
-                    </button>
-                  </div>
-                </div>
+                <AnswerSubmission 
+                  challengeId={challenge.id} 
+                  points={challenge.points} 
+                  chapterNumber={params.id} 
+                />
               </div>
             </div>
           </div>

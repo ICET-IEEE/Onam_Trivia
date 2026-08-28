@@ -3,9 +3,10 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chapter, Challenge } from "@/lib/types";
+import { Chapter, Challenge, ChallengeAnswer } from "@/lib/types";
 import { Insignia } from "@/components/Insignia";
 import { hashFlag } from "@/lib/crypto";
+import { normalizeAnswer } from "@/lib/normalization";
 
 export function ChallengeManagerClient({ 
   chapter, 
@@ -26,18 +27,21 @@ export function ChallengeManagerClient({
     title: "",
     description: "",
     question: "",
-    type: "riddle",
+    type: "photo_song",
     difficulty: "easy",
     points: 100,
     hint: "",
     is_published: false,
-    answer: "", // Plaintext answer, not saved directly
+    answers: [""] as string[], // Array of accepted answers
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audioPreview, setAudioPreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -50,23 +54,32 @@ export function ChallengeManagerClient({
     if (data) setChallenges(data);
   };
 
-  const openForm = (challenge?: Challenge) => {
+  const openForm = async (challenge?: Challenge) => {
     setImageFile(null);
+    setAudioFile(null);
     if (challenge) {
       setEditingChallenge(challenge);
+      
+      // Fetch existing answers for this challenge
+      const { data: answers } = await supabase
+        .from('challenge_answers')
+        .select('answer_hash')
+        .eq('challenge_id', challenge.id);
+      
       setFormData({
         order_number: challenge.order_number,
         title: challenge.title,
         description: challenge.description || "",
-        question: challenge.question,
+        question: challenge.question || "",
         type: challenge.type,
         difficulty: challenge.difficulty,
         points: challenge.points,
         hint: challenge.hint || "",
         is_published: challenge.is_published,
-        answer: "", // Keep empty when editing
+        answers: [""] as string[], // Start with empty array for editing
       });
       setImagePreview(challenge.image_url || null);
+      setAudioPreview(challenge.audio_url || null);
     } else {
       setEditingChallenge(null);
       setFormData({
@@ -74,14 +87,15 @@ export function ChallengeManagerClient({
         title: "",
         description: "",
         question: "",
-        type: "riddle",
+        type: "photo_song",
         difficulty: "easy",
         points: 100,
         hint: "",
         is_published: false,
-        answer: "",
+        answers: [""], // Start with one empty answer
       });
       setImagePreview(null);
+      setAudioPreview(null);
     }
     setError("");
     setSuccess("");
@@ -98,6 +112,31 @@ export function ChallengeManagerClient({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAudioFile(file);
+      setAudioPreview(file.name);
+    }
+  };
+
+  const addAnswerField = () => {
+    setFormData({...formData, answers: [...formData.answers, ""]});
+  };
+
+  const removeAnswerField = (index: number) => {
+    if (formData.answers.length > 1) {
+      const newAnswers = formData.answers.filter((_, i) => i !== index);
+      setFormData({...formData, answers: newAnswers});
+    }
+  };
+
+  const updateAnswer = (index: number, value: string) => {
+    const newAnswers = [...formData.answers];
+    newAnswers[index] = value;
+    setFormData({...formData, answers: newAnswers});
   };
 
   const uploadImage = async (): Promise<string | null> => {
@@ -122,6 +161,28 @@ export function ChallengeManagerClient({
     return data.publicUrl;
   };
 
+  const uploadAudio = async (): Promise<string | null> => {
+    if (!audioFile) return editingChallenge?.audio_url || null;
+    
+    const fileExt = audioFile.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `${chapter.id}/audio/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('challenge-assets')
+      .upload(filePath, audioFile);
+
+    if (uploadError) {
+      throw new Error(`Audio upload failed: ${uploadError.message}`);
+    }
+
+    const { data } = supabase.storage
+      .from('challenge-assets')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -133,14 +194,19 @@ export function ChallengeManagerClient({
       setLoading(false);
       return;
     }
-    if (!editingChallenge && !formData.answer) {
-      setError("An answer/flag is required for new challenges.");
+    
+    // Validate that at least one answer is provided
+    const validAnswers = formData.answers.filter(answer => answer.trim() !== "");
+    if (!editingChallenge && validAnswers.length === 0) {
+      setError("At least one accepted answer is required for new challenges.");
       setLoading(false);
       return;
     }
 
     try {
       let imageUrl = null;
+      let audioUrl = null;
+      
       try {
         imageUrl = await uploadImage();
       } catch (err: any) {
@@ -149,26 +215,45 @@ export function ChallengeManagerClient({
         return;
       }
 
-      // Hash the flag if provided
-      let finalFlagHash = editingChallenge?.flag_hash;
-      if (formData.answer) {
-        finalFlagHash = await hashFlag(formData.answer);
+      try {
+        audioUrl = await uploadAudio();
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+        return;
+      }
+
+      // Clear fields based on type to prevent orphaned data
+      let finalImageUrl: string | null = imageUrl;
+      let finalAudioUrl: string | null = audioUrl;
+      let finalQuestion: string | null = formData.question;
+
+      if (formData.type === "photo_only") {
+        finalAudioUrl = null; // Clear audio for photo_only type
+        finalQuestion = null; // Clear question for photo_only type
+      } else if (formData.type === "question_answer") {
+        finalImageUrl = null; // Clear image for question_answer type
+        finalAudioUrl = null; // Clear audio for question_answer type
+      } else if (formData.type === "photo_song") {
+        finalQuestion = null; // Clear question for photo_song type
       }
 
       const payload = {
         chapter_id: chapter.id,
         title: formData.title,
         description: formData.description,
-        question: formData.question,
+        question: finalQuestion,
         type: formData.type,
         difficulty: formData.difficulty,
         points: formData.points,
         hint: formData.hint,
         is_published: formData.is_published,
         order_number: formData.order_number,
-        image_url: imageUrl,
-        flag_hash: finalFlagHash,
+        image_url: finalImageUrl,
+        audio_url: finalAudioUrl,
       };
+
+      let challengeId: string;
 
       if (editingChallenge) {
         const { error: updateError } = await supabase
@@ -183,11 +268,14 @@ export function ChallengeManagerClient({
             throw new Error(updateError.message);
           }
         }
+        challengeId = editingChallenge.id;
         setSuccess("Challenge updated successfully.");
       } else {
-        const { error: insertError } = await supabase
+        const { data: newChallenge, error: insertError } = await supabase
           .from("challenges")
-          .insert([payload]);
+          .insert([payload])
+          .select()
+          .single();
 
         if (insertError) {
           if (insertError.code === "23505") {
@@ -196,7 +284,37 @@ export function ChallengeManagerClient({
             throw new Error(insertError.message);
           }
         }
+        challengeId = newChallenge.id;
         setSuccess("Challenge created successfully.");
+      }
+
+      // Save multiple accepted answers (only delete/replace if new valid answers are entered when editing)
+      if (validAnswers.length > 0) {
+        if (editingChallenge) {
+          await supabase
+            .from('challenge_answers')
+            .delete()
+            .eq('challenge_id', challengeId);
+        }
+
+        const answerHashes = await Promise.all(
+          validAnswers.map(async (answer) => {
+            return await hashFlag(answer);
+          })
+        );
+
+        const answersPayload = answerHashes.map(hash => ({
+          challenge_id: challengeId,
+          answer_hash: hash
+        }));
+
+        const { error: answersError } = await supabase
+          .from('challenge_answers')
+          .insert(answersPayload);
+
+        if (answersError) {
+          throw new Error(`Failed to save answers: ${answersError.message}`);
+        }
       }
       
       setIsFormOpen(false);
@@ -287,7 +405,12 @@ export function ChallengeManagerClient({
                   <tr key={chal.id} className="border-b border-ivory-line hover:bg-ivory/30 transition-colors">
                     <td className="p-4 font-medium text-ink">{String(chal.order_number).padStart(2, '0')}</td>
                     <td className="p-4 text-ink font-medium">{chal.title}</td>
-                    <td className="p-4 text-ink-soft capitalize">{chal.type.replace('_', ' ')}</td>
+                    <td className="p-4 text-ink-soft capitalize">
+                      {chal.type === 'photo_song' ? 'Photo + Song' : 
+                       chal.type === 'photo_only' ? 'Photo Only' : 
+                       chal.type === 'question_answer' ? 'Question & Answer' : 
+                       chal.type.replace('_', ' ')}
+                    </td>
                     <td className="p-4 text-ink-soft capitalize">{chal.difficulty}</td>
                     <td className="p-4 text-kingdom-green font-semibold">{chal.points}</td>
                     <td className="p-4">
@@ -391,37 +514,27 @@ export function ChallengeManagerClient({
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-ink">Question</label>
-                <textarea 
-                  rows={3}
-                  required
-                  value={formData.question} 
-                  onChange={(e) => setFormData({...formData, question: e.target.value})}
-                  className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none resize-none" 
-                />
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-ink">Type</label>
+                  <label className="text-sm font-medium text-ink">Challenge Type</label>
                   <select 
                     value={formData.type} 
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                    onChange={(e) => {
+                      const newType = e.target.value;
+                      // Clear question when switching away from question_answer type
+                      const clearedQuestion = newType === "question_answer" ? formData.question : "";
+                      setFormData({...formData, type: newType, question: clearedQuestion});
+                      // Clear type-specific files when switching types
+                      setImageFile(null);
+                      setImagePreview(null);
+                      setAudioFile(null);
+                      setAudioPreview(null);
+                    }}
                     className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none" 
                   >
-                    <option value="riddle">Riddle</option>
-                    <option value="trivia">Trivia</option>
-                    <option value="multiple_choice">Multiple Choice</option>
-                    <option value="cipher">Cipher</option>
-                    <option value="anagram">Anagram</option>
-                    <option value="image">Image</option>
-                    <option value="qr">QR Code</option>
-                    <option value="pattern">Pattern</option>
-                    <option value="web">Web</option>
-                    <option value="text">Text</option>
-                    <option value="multi_stage">Multi Stage</option>
-                    <option value="final">Final</option>
+                    <option value="photo_song">Photo + Song</option>
+                    <option value="photo_only">Photo Only</option>
+                    <option value="question_answer">Question & Answer</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -438,6 +551,105 @@ export function ChallengeManagerClient({
                 </div>
               </div>
 
+              {/* Type-specific fields */}
+              {formData.type === "photo_song" && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-ink">Challenge Image</label>
+                    <input 
+                      type="file" 
+                      accept="image/png, image/jpeg, image/webp"
+                      ref={fileInputRef}
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 bg-ink/5 hover:bg-ink/10 text-ink rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Choose Image
+                      </button>
+                      <span className="text-xs text-ink-soft">
+                        {imageFile ? imageFile.name : (imagePreview ? "Image attached" : "No image selected")}
+                      </span>
+                    </div>
+                    {imagePreview && (
+                      <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border border-ivory-line">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium text-ink">Audio File (MP3)</label>
+                    <input 
+                      type="file" 
+                      accept="audio/mpeg, audio/mp3"
+                      ref={audioInputRef}
+                      onChange={handleAudioChange}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => audioInputRef.current?.click()}
+                        className="px-4 py-2 bg-ink/5 hover:bg-ink/10 text-ink rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Choose Audio
+                      </button>
+                      <span className="text-xs text-ink-soft">
+                        {audioFile ? audioFile.name : (audioPreview ? "Audio attached" : "No audio selected")}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {formData.type === "photo_only" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-ink">Challenge Image</label>
+                  <input 
+                    type="file" 
+                    accept="image/png, image/jpeg, image/webp"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 bg-ink/5 hover:bg-ink/10 text-ink rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Choose Image
+                    </button>
+                    <span className="text-xs text-ink-soft">
+                      {imageFile ? imageFile.name : (imagePreview ? "Image attached" : "No image selected")}
+                    </span>
+                  </div>
+                  {imagePreview && (
+                    <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border border-ivory-line">
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {formData.type === "question_answer" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-ink">Question</label>
+                  <textarea 
+                    rows={3}
+                    required
+                    value={formData.question} 
+                    onChange={(e) => setFormData({...formData, question: e.target.value})}
+                    className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none resize-none" 
+                  />
+                </div>
+              )}
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-ink">Hint (Optional)</label>
                 <input 
@@ -448,47 +660,40 @@ export function ChallengeManagerClient({
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-3">
                 <label className="text-sm font-medium text-ink flex items-center justify-between">
-                  <span>Answer / Flag</span>
-                  {editingChallenge && <span className="text-xs text-rust font-normal">Leave blank to keep current answer</span>}
+                  <span>Accepted Answers / Flags</span>
+                  <span className="text-xs text-ink-soft">Add multiple accepted spellings (e.g., "Vamana", "Vaamana")</span>
                 </label>
-                <input 
-                  type="text" 
-                  value={formData.answer} 
-                  onChange={(e) => setFormData({...formData, answer: e.target.value})}
-                  placeholder={editingChallenge ? "Enter new answer to override" : "Required"}
-                  required={!editingChallenge}
-                  className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none" 
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-ink">Challenge Image (Optional)</label>
-                <input 
-                  type="file" 
-                  accept="image/png, image/jpeg, image/webp"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 bg-ink/5 hover:bg-ink/10 text-ink rounded-lg text-sm font-medium transition-colors"
-                  >
-                    Choose Image
-                  </button>
-                  <span className="text-xs text-ink-soft">
-                    {imageFile ? imageFile.name : (imagePreview ? "Image attached" : "No image selected")}
-                  </span>
+                <div className="space-y-2">
+                  {formData.answers.map((answer, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={answer} 
+                        onChange={(e) => updateAnswer(index, e.target.value)}
+                        placeholder={`Accepted answer ${index + 1}`}
+                        className="flex-1 rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none" 
+                      />
+                      {formData.answers.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeAnswerField(index)}
+                          className="px-3 py-2 bg-rust/10 hover:bg-rust/20 text-rust rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                {imagePreview && (
-                  <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border border-ivory-line">
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={addAnswerField}
+                  className="text-sm font-medium text-kingdom-green hover:text-kingdom-green-deep transition-colors flex items-center gap-1"
+                >
+                  + Add another accepted answer
+                </button>
               </div>
 
               <div className="flex items-center gap-3 mt-2">

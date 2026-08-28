@@ -30,19 +30,41 @@ export default function SignInPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       setError(error.message);
       return;
     }
 
+    if (signInData?.user) {
+      const user = signInData.user;
+      const metaName = user.user_metadata?.full_name;
+      const emailPrefix = user.email?.split('@')[0] || 'Player';
+
+      const { data: existingProf } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const profileName = (existingProf?.full_name && existingProf.full_name !== 'Challenger') ? existingProf.full_name : null;
+      const nameToSave = profileName || metaName || emailPrefix;
+
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        full_name: nameToSave,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' });
+    }
+
+    setLoading(false);
     router.push("/");
+    router.refresh();
   }
 
   return (

@@ -207,6 +207,24 @@ This is a trivia/challenge website built with Next.js, TypeScript, and Supabase.
   - Chapters list page
 - SQL migration script provided in `remove_columns.sql`
 
+### Challenge Type System Enhancement
+- Implemented conditional form fields based on challenge type
+- Three challenge types with specific field requirements:
+  - **Photo + Song**: Image upload + Audio upload + Answer/Flag
+  - **Photo Only**: Image upload + Answer/Flag  
+  - **Question & Answer**: Question text + Answer/Flag
+- Form dynamically shows/hides fields based on selected type
+- Prevents orphaned data by clearing irrelevant fields when switching types
+- Added `audio_url` column to challenges table
+- Made `question` column nullable to support different challenge types
+- Updated TypeScript types to include `audio_url` and nullable `question`
+- Enhanced challenge display page to support audio playback
+- **Migration Required**: Run `complete_migration.sql` in Supabase SQL Editor to:
+  - Add `audio_url` column
+  - Make `question` column nullable
+  - Update existing challenge types to new system
+  - Add type constraints and documentation
+
 ## Database Tables (Supabase)
 
 ### Tables

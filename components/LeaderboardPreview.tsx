@@ -1,9 +1,71 @@
-import { Crown } from "lucide-react";
-import { leaderboard } from "@/lib/data";
+import { Crown, Trophy } from "lucide-react";
 import { Reveal } from "./Reveal";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-export function LeaderboardPreview() {
+export async function LeaderboardPreview() {
+  const supabase = await createClient();
+
+  const { data: profilesData } = await supabase
+    .from("profiles")
+    .select("id, full_name, role");
+
+  const { data: solvesData } = await supabase
+    .from("user_solves")
+    .select("user_id, points_awarded, solved_at");
+
+  const profiles = profilesData || [];
+  const solves = solvesData || [];
+
+  const userMap: Record<string, { name: string; score: number; latestSolveTime: number }> = {};
+
+  profiles.forEach((p) => {
+    if (p.role !== "admin") {
+      const validName = p.full_name && p.full_name !== "Challenger" ? p.full_name : "";
+      userMap[p.id] = {
+        name: validName,
+        score: 0,
+        latestSolveTime: 0,
+      };
+    }
+  });
+
+  solves.forEach((s) => {
+    if (!userMap[s.user_id]) {
+      userMap[s.user_id] = {
+        name: "",
+        score: 0,
+        latestSolveTime: 0,
+      };
+    }
+    const entry = userMap[s.user_id];
+    entry.score += s.points_awarded || 0;
+    const time = new Date(s.solved_at).getTime();
+    if (time > entry.latestSolveTime) {
+      entry.latestSolveTime = time;
+    }
+  });
+
+  const leaderboardList = Object.entries(userMap)
+    .filter(([_, data]) => data.score > 0 || (data.name && data.name !== "Challenger"))
+    .map(([userId, data]) => ({
+      userId,
+      rank: 0,
+      name: data.name || "Player",
+      score: data.score,
+      latestSolveTime: data.latestSolveTime,
+    }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (a.latestSolveTime && b.latestSolveTime) return a.latestSolveTime - b.latestSolveTime;
+      return a.name.localeCompare(b.name);
+    })
+    .map((item, index) => ({
+      ...item,
+      rank: index + 1,
+    }))
+    .slice(0, 5);
+
   return (
     <section className="section-pad py-24 sm:py-28">
       <div className="container-max">
@@ -23,40 +85,56 @@ export function LeaderboardPreview() {
         <Reveal delay={100}>
           <div className="mt-10 overflow-hidden rounded-2xl border border-ivory-line bg-white">
             <p className="border-b border-ivory-line bg-ivory-deep/60 px-6 py-2.5 text-center text-[0.7rem] font-semibold uppercase tracking-wider text-ink-faint">
-              Placeholder data &mdash; standings will update once the trial begins
+              Live Standings
             </p>
-            <ul>
-              {leaderboard.map((entry) => (
-                <li
-                  key={entry.rank}
-                  className={`flex items-center justify-between gap-4 px-6 py-4 sm:px-8 ${
-                    entry.rank !== leaderboard.length ? "border-b border-ivory-line" : ""
-                  } ${entry.rank <= 3 ? "bg-gold/[0.04]" : ""}`}
+
+            {leaderboardList.length === 0 ? (
+              <div className="p-8 text-center">
+                <Trophy className="w-8 h-8 text-gold/60 mx-auto mb-2" />
+                <p className="text-sm text-ink-soft">
+                  No active participants on the leaderboard right now.
+                </p>
+                <Link 
+                  href="/chapters"
+                  className="mt-3 inline-block text-xs font-semibold text-gold hover:underline"
                 >
-                  <div className="flex items-center gap-4">
-                    <span
-                      className={`flex h-9 w-9 items-center justify-center rounded-full font-display text-base ${
-                        entry.rank === 1
-                          ? "bg-gold text-ivory"
-                          : entry.rank <= 3
-                          ? "bg-gold/15 text-gold-dim"
-                          : "bg-ivory-deep text-ink-faint"
-                      }`}
-                    >
-                      {entry.rank}
+                  Start the trial &rarr;
+                </Link>
+              </div>
+            ) : (
+              <ul>
+                {leaderboardList.map((entry) => (
+                  <li
+                    key={entry.userId}
+                    className={`flex items-center justify-between gap-4 px-6 py-4 sm:px-8 ${
+                      entry.rank !== leaderboardList.length ? "border-b border-ivory-line" : ""
+                    } ${entry.rank <= 3 ? "bg-gold/[0.04]" : ""}`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`flex h-9 w-9 items-center justify-center rounded-full font-display text-base ${
+                          entry.rank === 1
+                            ? "bg-gold text-ivory"
+                            : entry.rank <= 3
+                            ? "bg-gold/15 text-gold-dim"
+                            : "bg-ivory-deep text-ink-faint"
+                        }`}
+                      >
+                        {entry.rank}
+                      </span>
+                      <span className="flex items-center gap-2 font-medium text-ink">
+                        {entry.name}
+                        {entry.rank === 1 && <Crown className="h-4 w-4 text-gold" />}
+                      </span>
+                    </div>
+                    <span className="font-display text-lg text-kingdom-green">
+                      {entry.score}
+                      <span className="ml-1 text-xs font-body text-ink-faint">pts</span>
                     </span>
-                    <span className="flex items-center gap-2 font-medium text-ink">
-                      {entry.team}
-                      {entry.rank === 1 && <Crown className="h-4 w-4 text-gold" />}
-                    </span>
-                  </div>
-                  <span className="font-display text-lg text-kingdom-green">
-                    {entry.score}
-                    <span className="ml-1 text-xs font-body text-ink-faint">pts</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </Reveal>
       </div>

@@ -55,7 +55,7 @@ export default function SignUpPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
 
@@ -64,17 +64,25 @@ export default function SignUpPage() {
           full_name: fullName.trim(),
           mobile_number: mobileNumber.trim(),
         },
-
-        // emailRedirectTo: `${window.location.origin}/auth/confirm?next=/dashboard`,
       },
     });
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       setError(error.message);
       return;
     }
+
+    if (signUpData?.user) {
+      await supabase.from('profiles').upsert({
+        id: signUpData.user.id,
+        full_name: fullName.trim(),
+        mobile_number: mobileNumber.trim(),
+        role: 'player',
+      }, { onConflict: 'id' });
+    }
+
+    setLoading(false);
 
     setSuccess("Account created successfully!");
 

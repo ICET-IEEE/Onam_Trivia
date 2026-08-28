@@ -25,17 +25,25 @@ export interface Challenge {
   chapter_id: string;
   title: string;
   description?: string;
-  question: string;
+  question?: string;
   type: string;
   difficulty: string;
   points: number;
   image_url?: string;
-  flag_hash?: string;
+  audio_url?: string;
+  flag_hash?: string; // DEPRECATED: Use challenge_answers table
   hint?: string;
   is_published: boolean;
   order_number: number;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ChallengeAnswer {
+  id: string;
+  challenge_id: string;
+  answer_hash: string;
+  created_at?: string;
 }
 
 export interface LeaderboardTeam {

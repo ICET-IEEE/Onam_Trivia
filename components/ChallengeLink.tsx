@@ -20,8 +20,8 @@ export function ChallengeLink({ challengeId, chapterId, children, className }: C
 
   useEffect(() => {
     async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
       setLoading(false);
     }
     checkAuth();

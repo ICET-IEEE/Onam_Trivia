@@ -23,24 +23,53 @@ export function Navbar() {
   const supabase = createClient();
 
   useEffect(() => {
-    async function getUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
+    async function fetchUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const metaName = user.user_metadata?.full_name;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const profileName = (profile?.full_name && profile.full_name !== 'Challenger') ? profile.full_name : null;
+        const displayName = profileName || metaName || user.email?.split('@')[0] || 'User';
+
         setUser({
-          name: fullName,
-          email: session.user.email
+          name: displayName,
+          email: user.email
         });
+
+        const nameToSave = profileName || metaName || user.email?.split('@')[0] || 'Player';
+        if (!profile || profile.full_name !== nameToSave) {
+          await supabase.from('profiles').upsert({
+            id: user.id,
+            full_name: nameToSave,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'id' });
+        }
       }
       setLoading(false);
     }
-    getUser();
+    fetchUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
+        const metaName = session.user.user_metadata?.full_name;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        const profileName = (profile?.full_name && profile.full_name !== 'Challenger') ? profile.full_name : null;
+        const displayName = profileName || metaName || session.user.email?.split('@')[0] || 'User';
+
         setUser({
-          name: fullName,
+          name: displayName,
           email: session.user.email
         });
       } else {
