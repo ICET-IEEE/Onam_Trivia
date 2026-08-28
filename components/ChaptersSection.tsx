@@ -1,21 +1,29 @@
-import { chapters } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
 import { ChapterCard } from "./ChapterCard";
 import { Reveal } from "./Reveal";
 
-export function ChaptersSection() {
+export async function ChaptersSection() {
+  const supabase = await createClient();
+  const { data: chapters } = await supabase.from('chapters').select('*').order('chapter_number', { ascending: true });
+  const safeChapters = chapters || [];
+  
   return (
     <section className="section-pad bg-ivory-deep/50 py-24 sm:py-28" id="how-it-works">
       <div className="container-max">
         <Reveal>
-          <div className="max-w-2xl">
-            <span className="eyebrow">How the Trial Works</span>
-            <h2 className="mt-4 text-4xl sm:text-5xl">Four Chapters. One Trial.</h2>
+          <div className="mb-12 max-w-2xl">
+            <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl mb-4">
+              The Path to Glory
+            </h2>
+            <p className="text-ink-soft leading-relaxed">
+              Complete chapters sequentially. Each chapter contains challenges that reveal lore and test your logic. Prove your worth.
+            </p>
           </div>
         </Reveal>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
-          {chapters.map((chapter, i) => (
-            <Reveal key={chapter.number} delay={i * 100}>
+          {safeChapters.map((chapter, i) => (
+            <Reveal key={chapter.chapter_number} delay={i * 100}>
               <ChapterCard chapter={chapter} />
             </Reveal>
           ))}

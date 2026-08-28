@@ -1,14 +1,33 @@
-export type ChapterStatus = "available" | "locked" | "completed";
-
 export interface Chapter {
-  number: string;
+  id: string;
+  chapter_number: string;
   title: string;
   description: string;
-  difficulty: string;
-  type: string;
-  challenges: number;
-  status: ChapterStatus;
-  progress: number;
+  difficulty?: string;
+  type?: string;
+  status?: string;
+  progress?: number;
+  is_published: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Profile {
+  id: string;
+  full_name: string;
+  mobile_number: string;
+  avatar_url: string;
+  role: "player" | "admin";
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Challenge {
+  id: string;
+  chapterId: string;
+  title: string;
+  description: string;
+  points: number;
 }
 
 export interface LeaderboardTeam {

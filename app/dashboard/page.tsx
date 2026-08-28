@@ -2,16 +2,18 @@ import { Lock, CheckCircle2, Circle, Users, Trophy } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/Button";
-import { chapters } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
 
-const dashboardChapters = [
-  { ...chapters[0], status: "completed" as const },
-  chapters[1],
-  chapters[2],
-  chapters[3],
-];
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: chaptersData } = await supabase
+    .from('chapters')
+    .select('*')
+    .order('chapter_number', { ascending: true })
+    .limit(4);
+    
+  const dashboardChapters = chaptersData || [];
 
-export default function DashboardPage() {
   return (
     <>
       <Navbar />
@@ -54,7 +56,7 @@ export default function DashboardPage() {
                 <ul className="mt-5 flex flex-col gap-4">
                   {dashboardChapters.map((chapter) => (
                     <li
-                      key={chapter.number}
+                      key={chapter.chapter_number}
                       className="flex items-center justify-between gap-4 border-b border-ivory-line pb-4 last:border-0 last:pb-0"
                     >
                       <div className="flex items-center gap-3">
@@ -67,7 +69,7 @@ export default function DashboardPage() {
                         )}
                         <div>
                           <p className="font-medium text-ink">
-                            {chapter.number}. {chapter.title}
+                            {chapter.chapter_number}. {chapter.title}
                           </p>
                           <p className="text-xs text-ink-faint">{chapter.type}</p>
                         </div>

@@ -15,7 +15,8 @@ const iconMap: Record<string, React.ElementType> = {
 
 export function ChapterCard({ chapter }: ChapterCardProps) {
   const isLocked = chapter.status === "locked";
-  const Icon = iconMap[chapter.number] || Crown;
+  const numStr = String(chapter.chapter_number).padStart(2, '0');
+  const Icon = iconMap[numStr] || Crown;
 
   const cardContent = (
     <div 
@@ -27,7 +28,7 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
     >
       <div className="flex justify-between items-start mb-5 relative z-10">
         <span className="text-xs font-bold tracking-[0.2em] text-rust uppercase mt-2">
-          Chapter {chapter.number}
+          Chapter {numStr}
         </span>
         
         {isLocked ? (
@@ -54,13 +55,13 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
           <div className="flex justify-between items-center text-xs">
             <span className="font-semibold text-ink-faint uppercase tracking-wider">Difficulty</span>
             <span className={`font-medium ${isLocked ? "text-ink-soft/60" : "text-kingdom-green"}`}>
-              {chapter.difficulty}
+              {chapter.difficulty || "Normal"}
             </span>
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="font-semibold text-ink-faint uppercase tracking-wider">Type</span>
             <span className={isLocked ? "text-ink-soft/60" : "text-ink-soft"}>
-              {chapter.type}
+              {chapter.type || "Lore"}
             </span>
           </div>
         </div>
@@ -78,7 +79,7 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
   }
 
   return (
-    <Link href={`/chapters/${chapter.number}`} className="block h-full">
+    <Link href={`/chapters/${chapter.chapter_number}`} className="block h-full">
       {cardContent}
     </Link>
   );

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { chapters } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Crown, Eye, Layers, Flame, Lock } from "lucide-react";
@@ -11,15 +11,30 @@ const iconMap: Record<string, React.ElementType> = {
   "04": Flame,
 };
 
-export default function ChapterPage({ params }: { params: { id: string } }) {
-  const chapter = chapters.find((c) => c.number === params.id);
-
+export default async function ChapterPage({ params }: { params: { id: string } }) {
+  const supabase = await createClient();
+  
+  const { data: chapter } = await supabase
+    .from('chapters')
+    .select('*')
+    .eq('chapter_number', params.id)
+    .single();
+  
   if (!chapter) {
     notFound();
   }
 
+  const { data: challengesData } = await supabase
+    .from('challenges')
+    .select('*')
+    .eq('chapter_id', chapter.id)
+    .order('created_at', { ascending: true });
+
+  const challenges = challengesData || [];
+
   const isLocked = chapter.status === "locked";
-  const Icon = iconMap[chapter.number] || Crown;
+  const numStr = String(chapter.chapter_number).padStart(2, '0');
+  const Icon = iconMap[numStr] || Crown;
 
   return (
     <>
@@ -27,16 +42,16 @@ export default function ChapterPage({ params }: { params: { id: string } }) {
       <main className="section-pad py-14 sm:py-20 min-h-[80vh]">
         <div className="container-max">
           <div className="max-w-3xl mx-auto">
-            <span className="eyebrow">Chapter {chapter.number}</span>
+            <span className="eyebrow">Chapter {numStr}</span>
             <h1 className="mt-4 text-4xl sm:text-6xl font-display font-bold text-ink">
               {chapter.title}
             </h1>
             <div className="flex items-center gap-4 mt-6 text-sm text-ink-soft">
-              <span className="font-semibold text-kingdom-green">{chapter.difficulty}</span>
+              <span className="font-semibold text-kingdom-green">{chapter.difficulty || "Normal"}</span>
               <span>•</span>
-              <span>{chapter.type}</span>
+              <span>{chapter.type || "Lore"}</span>
               <span>•</span>
-              <span>{chapter.challenges} Challenges</span>
+              <span>{challenges.length} Challenges</span>
             </div>
 
             <div className="mt-12 bg-white rounded-2xl p-8 sm:p-12 border border-gold/20 shadow-sm relative overflow-hidden">
@@ -62,14 +77,23 @@ export default function ChapterPage({ params }: { params: { id: string } }) {
                       <h3 className="text-xl font-display font-bold text-ink mb-6">Challenges</h3>
                       {/* This is a placeholder for actual challenges */}
                       <div className="space-y-4">
-                        {Array.from({ length: chapter.challenges }).map((_, i) => (
-                          <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-ink/10 bg-ivory-deep/30">
-                            <span className="font-medium text-ink">Challenge {i + 1}</span>
-                            <button className="text-sm font-semibold text-rust hover:text-rust-deep transition-colors">
-                              Start Challenge
-                            </button>
+                        {challenges.map((challenge, i) => (
+                          <div key={challenge.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-ink/10 bg-ivory-deep/30 gap-4">
+                            <div>
+                              <span className="font-medium text-ink block">{challenge.title}</span>
+                              <span className="text-sm text-ink-soft">{challenge.description}</span>
+                            </div>
+                            <div className="flex items-center gap-4 shrink-0">
+                              <span className="text-sm font-semibold text-kingdom-green">{challenge.points} pts</span>
+                              <button className="text-sm font-semibold text-rust hover:text-rust-deep transition-colors">
+                                Start Challenge
+                              </button>
+                            </div>
                           </div>
                         ))}
+                        {challenges.length === 0 && (
+                          <p className="text-ink-soft text-sm">No challenges available yet.</p>
+                        )}
                       </div>
                     </div>
                   </div>
