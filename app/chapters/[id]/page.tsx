@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ChallengeLink } from "@/components/ChallengeLink";
 import { Crown, Eye, Layers, Flame, Lock } from "lucide-react";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -14,13 +15,6 @@ const iconMap: Record<string, React.ElementType> = {
 
 export default async function ChapterPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
-
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  // Authentication check must happen before any database queries
-  if (!session) {
-    redirect("/signin");
-  }
   
   const { data: chapter } = await supabase
     .from('chapters')
@@ -91,12 +85,13 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                             </div>
                             <div className="flex items-center gap-4 shrink-0">
                               <span className="text-sm font-semibold text-kingdom-green">{challenge.points} pts</span>
-                              <Link 
-                                href={`/chapters/${params.id}/challenges/${challenge.id}`}
+                              <ChallengeLink 
+                                challengeId={challenge.id}
+                                chapterId={params.id}
                                 className="text-sm font-semibold text-rust hover:text-rust-deep transition-colors"
                               >
                                 Start Challenge
-                              </Link>
+                              </ChallengeLink>
                             </div>
                           </div>
                         ))}

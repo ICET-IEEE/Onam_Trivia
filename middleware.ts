@@ -43,13 +43,14 @@ export async function middleware(request: NextRequest) {
   )
 
   // Protected routes that require authentication
-  const protectedPaths = ['/dashboard', '/chapters']
+  const protectedPaths = ['/dashboard']
+  const challengePathPattern = /^\/chapters\/[^/]+\/challenges\/[^/]+$/
   const adminPaths = ['/admin']
 
   const { pathname } = request.nextUrl
 
   // Check if user is authenticated for protected routes
-  if (protectedPaths.some(path => pathname.startsWith(path))) {
+  if (protectedPaths.includes(pathname) || challengePathPattern.test(pathname)) {
     const { data: { session } } = await supabase.auth.getSession()
     
     if (!session) {
@@ -74,7 +75,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/chapters/:path*',
+    '/chapters/:path*/challenges/:path*',
     '/admin/:path*',
   ],
 }

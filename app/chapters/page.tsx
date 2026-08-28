@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChapterCard } from "@/components/ChapterCard";
@@ -6,12 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function ChaptersPage() {
   const supabase = await createClient();
-
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!session) {
-    redirect("/signin");
-  }
 
   const { data: chapters } = await supabase.from('chapters').select('*').order('chapter_number', { ascending: true });
   const safeChapters = chapters || [];
