@@ -24,10 +24,20 @@ export interface Profile {
 
 export interface Challenge {
   id: string;
-  chapterId: string;
+  chapter_id: string;
   title: string;
-  description: string;
+  description?: string;
+  question: string;
+  type: string;
+  difficulty: string;
   points: number;
+  image_url?: string;
+  flag_hash?: string;
+  hint?: string;
+  is_published: boolean;
+  order_number: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface LeaderboardTeam {

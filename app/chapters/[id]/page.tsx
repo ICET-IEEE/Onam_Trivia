@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -85,9 +86,12 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                             </div>
                             <div className="flex items-center gap-4 shrink-0">
                               <span className="text-sm font-semibold text-kingdom-green">{challenge.points} pts</span>
-                              <button className="text-sm font-semibold text-rust hover:text-rust-deep transition-colors">
+                              <Link 
+                                href={`/chapters/${params.id}/challenges/${challenge.id}`}
+                                className="text-sm font-semibold text-rust hover:text-rust-deep transition-colors"
+                              >
                                 Start Challenge
-                              </button>
+                              </Link>
                             </div>
                           </div>
                         ))}

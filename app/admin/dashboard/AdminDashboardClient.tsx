@@ -208,6 +208,12 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
                     </td>
                     <td className="p-4 flex justify-end gap-3">
                       <button 
+                        onClick={() => router.push(`/admin/chapters/${chapter.id}`)}
+                        className="text-sm font-medium text-kingdom-green hover:text-kingdom-green-deep transition-colors mr-2"
+                      >
+                        Manage Challenges
+                      </button>
+                      <button 
                         onClick={() => openForm(chapter)} 
                         className="text-sm font-medium text-gold hover:text-gold-deep transition-colors"
                       >
