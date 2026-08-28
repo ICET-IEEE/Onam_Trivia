@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Lock, Crown, Eye, Layers, Flame } from "lucide-react";
 import { Chapter } from "@/lib/types";
 
@@ -16,9 +17,9 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
   const isLocked = chapter.status === "locked";
   const Icon = iconMap[chapter.number] || Crown;
 
-  return (
+  const cardContent = (
     <div 
-      className={`group relative overflow-hidden p-6 md:p-8 rounded-xl border transition-all duration-300 ${
+      className={`group relative overflow-hidden p-6 md:p-8 rounded-xl border transition-all duration-300 h-full ${
         isLocked 
           ? "bg-ivory-deep/40 border-ivory-line opacity-90" 
           : "bg-white border-gold/40 shadow-sm hover:shadow-[0_8px_30px_-12px_rgba(184,137,43,0.3)] hover:-translate-y-1"
@@ -70,5 +71,15 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
         <Icon className="w-40 h-40" />
       </div>
     </div>
+  );
+
+  if (isLocked) {
+    return cardContent;
+  }
+
+  return (
+    <Link href={`/chapters/${chapter.number}`} className="block h-full">
+      {cardContent}
+    </Link>
   );
 }
