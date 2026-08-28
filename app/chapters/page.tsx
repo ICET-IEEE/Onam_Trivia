@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ChapterCard } from "@/components/ChapterCard";
@@ -5,6 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function ChaptersPage() {
   const supabase = await createClient();
+
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    redirect("/signin");
+  }
+
   const { data: chapters } = await supabase.from('chapters').select('*').order('chapter_number', { ascending: true });
   const safeChapters = chapters || [];
   
@@ -29,10 +37,6 @@ export default async function ChaptersPage() {
             {safeChapters.map((chapter) => (
               <div key={chapter.chapter_number} className="flex flex-col gap-3">
                 <ChapterCard chapter={chapter} />
-                <div className="flex items-center justify-between px-2 text-xs text-ink-faint">
-                  <span>{chapter.challenges} challenges</span>
-                  <span>{chapter.progress}% complete</span>
-                </div>
               </div>
             ))}
           </div>

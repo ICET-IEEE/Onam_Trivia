@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
@@ -14,6 +14,13 @@ const iconMap: Record<string, React.ElementType> = {
 
 export default async function ChapterPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
+
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // Authentication check must happen before any database queries
+  if (!session) {
+    redirect("/signin");
+  }
   
   const { data: chapter } = await supabase
     .from('chapters')
@@ -49,8 +56,6 @@ export default async function ChapterPage({ params }: { params: { id: string } }
             </h1>
             <div className="flex items-center gap-4 mt-6 text-sm text-ink-soft">
               <span className="font-semibold text-kingdom-green">{chapter.difficulty || "Normal"}</span>
-              <span>•</span>
-              <span>{chapter.type || "Lore"}</span>
               <span>•</span>
               <span>{challenges.length} Challenges</span>
             </div>

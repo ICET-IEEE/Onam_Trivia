@@ -58,12 +58,6 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
               {chapter.difficulty || "Normal"}
             </span>
           </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="font-semibold text-ink-faint uppercase tracking-wider">Type</span>
-            <span className={isLocked ? "text-ink-soft/60" : "text-ink-soft"}>
-              {chapter.type || "Lore"}
-            </span>
-          </div>
         </div>
       </div>
       

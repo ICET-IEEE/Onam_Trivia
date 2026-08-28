@@ -4,9 +4,7 @@ export interface Chapter {
   title: string;
   description: string;
   difficulty?: string;
-  type?: string;
   status?: string;
-  progress?: number;
   is_published: boolean;
   created_at?: string;
   updated_at?: string;

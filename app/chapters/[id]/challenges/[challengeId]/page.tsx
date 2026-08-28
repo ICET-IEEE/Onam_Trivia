@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ChallengeImage } from "@/components/ChallengeImage";
 
 export default async function ChallengeDetailPage({ 
   params 
@@ -10,6 +11,13 @@ export default async function ChallengeDetailPage({
   params: { id: string, challengeId: string } 
 }) {
   const supabase = await createClient();
+
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // Authentication check must happen before any database queries
+  if (!session) {
+    redirect("/signin");
+  }
 
   // Fetch chapter
   const { data: chapter } = await supabase
@@ -77,14 +85,7 @@ export default async function ChallengeDetailPage({
                 </div>
 
                 {challenge.image_url && (
-                  <div className="mt-8 rounded-xl overflow-hidden border border-ivory-line shadow-sm">
-                    <p className="text-xs text-red-500 p-2 break-all">DEBUG URL: {challenge.image_url}</p>
-                    <img 
-                      src={challenge.image_url} 
-                      alt={challenge.title}
-                      className="w-full h-auto max-h-[500px] object-contain bg-ivory-deep/30"
-                    />
-                  </div>
+                  <ChallengeImage imageUrl={challenge.image_url} title={challenge.title} />
                 )}
 
                 {challenge.hint && (

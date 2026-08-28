@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { Lock, CheckCircle2, Circle, Users, Trophy } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -6,6 +7,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    redirect("/signin");
+  }
+
   const { data: chaptersData } = await supabase
     .from('chapters')
     .select('*')
@@ -71,7 +79,6 @@ export default async function DashboardPage() {
                           <p className="font-medium text-ink">
                             {chapter.chapter_number}. {chapter.title}
                           </p>
-                          <p className="text-xs text-ink-faint">{chapter.type}</p>
                         </div>
                       </div>
                       <span

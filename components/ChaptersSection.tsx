@@ -22,11 +22,17 @@ export async function ChaptersSection() {
         </Reveal>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2">
-          {safeChapters.map((chapter, i) => (
-            <Reveal key={chapter.chapter_number} delay={i * 100}>
-              <ChapterCard chapter={chapter} />
-            </Reveal>
-          ))}
+          {safeChapters.length > 0 ? (
+            safeChapters.map((chapter, i) => (
+              <Reveal key={chapter.chapter_number} delay={i * 100}>
+                <ChapterCard chapter={chapter} />
+              </Reveal>
+            ))
+          ) : (
+            <div className="col-span-2 text-center py-16">
+              <p className="text-ink-soft text-lg">No chapters have been created yet. Check back soon!</p>
+            </div>
+          )}
         </div>
       </div>
     </section>

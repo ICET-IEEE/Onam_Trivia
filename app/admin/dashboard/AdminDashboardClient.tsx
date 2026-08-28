@@ -19,9 +19,7 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
     title: "",
     description: "",
     difficulty: "Easy",
-    type: "Lore",
     status: "available",
-    progress: 0,
     is_published: false,
   });
 
@@ -49,9 +47,7 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
         title: chapter.title,
         description: chapter.description || "",
         difficulty: chapter.difficulty || "Easy",
-        type: chapter.type || "Lore",
         status: chapter.status || "available",
-        progress: chapter.progress || 0,
         is_published: chapter.is_published,
       });
     } else {
@@ -61,9 +57,7 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
         title: "",
         description: "",
         difficulty: "Easy",
-        type: "Lore",
         status: "available",
-        progress: 0,
         is_published: false,
       });
     }
@@ -302,18 +296,6 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-ink">Type</label>
-                  <input 
-                    type="text" 
-                    value={formData.type} 
-                    onChange={(e) => setFormData({...formData, type: e.target.value})}
-                    className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none" 
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium text-ink">Status</label>
                   <select 
                     value={formData.status} 
@@ -323,15 +305,6 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
                     <option value="available">Available</option>
                     <option value="locked">Locked</option>
                   </select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium text-ink">Progress</label>
-                  <input 
-                    type="number" 
-                    value={formData.progress} 
-                    onChange={(e) => setFormData({...formData, progress: parseInt(e.target.value) || 0})}
-                    className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none" 
-                  />
                 </div>
               </div>
 
