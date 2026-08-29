@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { Insignia } from "./Insignia";
@@ -17,10 +17,30 @@ const links = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const supabase = createClient();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    
+    if (profileOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     async function fetchUser() {
@@ -85,6 +105,7 @@ export function Navbar() {
     await supabase.auth.signOut();
     router.push('/');
     setOpen(false);
+    setProfileOpen(false);
   };
 
   return (
@@ -116,19 +137,32 @@ export function Navbar() {
           {loading ? (
             <div className="h-8 w-8 rounded-full bg-ivory-deep animate-pulse"></div>
           ) : user ? (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ivory-deep/50 border border-ivory-line">
+            <div className="relative flex items-center" ref={dropdownRef}>
+              <button
+                onClick={() => setProfileOpen((v) => !v)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-ivory-deep/50 border border-ivory-line hover:border-kingdom-green/30 transition-colors"
+              >
                 <div className="h-7 w-7 rounded-full bg-gold/20 flex items-center justify-center">
                   <User className="h-4 w-4 text-gold" />
                 </div>
                 <span className="text-sm font-medium text-ink">{user.name}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="text-sm font-medium text-ink-soft transition-colors hover:text-rust flex items-center gap-1"
-              >
-                <LogOut className="h-4 w-4" />
               </button>
+
+              {profileOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-ivory-line bg-white p-2 shadow-lg z-50 animate-fade-up">
+                  <div className="px-3 py-3 border-b border-ivory-line mb-2">
+                    <p className="text-sm font-medium text-ink truncate">{user.name}</p>
+                    <p className="text-xs text-ink-soft truncate">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-rust hover:bg-rust/5 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <>
