@@ -23,15 +23,21 @@ export function Navbar() {
   const router = useRouter();
   const supabase = createClient();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      // Handle profile dropdown
+      if (profileOpen && dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setProfileOpen(false);
+      }
+      // Handle mobile menu
+      if (open && headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setOpen(false);
       }
     }
     
-    if (profileOpen) {
+    if (profileOpen || open) {
       document.addEventListener("mousedown", handleClickOutside);
     } else {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -40,7 +46,19 @@ export function Navbar() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [profileOpen]);
+  }, [profileOpen, open]);
+
+  // Restrict scrolling when mobile menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   useEffect(() => {
     async function fetchUser() {
@@ -109,7 +127,7 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ivory-line/80 bg-ivory/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-ivory-line/80 bg-ivory/90 backdrop-blur-md" ref={headerRef}>
       <div className="container-max section-pad flex h-20 items-center justify-between">
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <Insignia className="h-9 w-9 shrink-0" animated={false} />
