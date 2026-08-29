@@ -135,26 +135,27 @@ export default async function LeaderboardPage() {
             <>
               {/* Top 3 podium */}
               {topThree.length > 0 && (
-                <div className="mt-12 grid gap-4 sm:grid-cols-3">
+                <div className="mt-10 sm:mt-16 grid grid-cols-3 gap-2 sm:gap-4 items-end">
                   {[second, first, third].map((entry, idx) => {
-                    if (!entry) return <div key={idx} className="hidden sm:block" />;
+                    if (!entry) return <div key={idx} className="block" />;
+                    
                     return (
                       <div
                         key={entry.userId}
-                        className={`flex flex-col items-center rounded-2xl border p-8 text-center ${
+                        className={`flex flex-col items-center rounded-xl sm:rounded-2xl border p-3 sm:p-8 text-center transition-transform ${
                           entry.rank === 1
-                            ? "border-gold bg-gold/[0.06] sm:-translate-y-4"
+                            ? "border-gold bg-gold/[0.06] -translate-y-4 sm:-translate-y-8 shadow-lg shadow-gold/5 z-10"
                             : "border-ivory-line bg-white"
                         }`}
                       >
                         {entry.rank === 1 ? (
-                          <Crown className="h-7 w-7 text-gold" />
+                          <Crown className="h-5 w-5 sm:h-7 sm:w-7 text-gold" />
                         ) : (
-                          <Medal className={`h-6 w-6 ${entry.rank === 2 ? "text-ink-faint" : "text-rust"}`} />
+                          <Medal className={`h-4 w-4 sm:h-6 sm:w-6 ${entry.rank === 2 ? "text-ink-faint" : "text-rust"}`} />
                         )}
-                        <span className="mt-3 font-display text-3xl text-kingdom-green">#{entry.rank}</span>
-                        <p className="mt-2 text-lg font-medium text-ink">{entry.name}</p>
-                        <p className="mt-1 text-sm font-semibold text-kingdom-green">{entry.score} pts</p>
+                        <span className="mt-2 sm:mt-3 font-display text-xl sm:text-3xl text-kingdom-green">#{entry.rank}</span>
+                        <p className="mt-1 sm:mt-2 text-xs sm:text-lg font-medium text-ink break-words w-full" title={entry.name}>{entry.name}</p>
+                        <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-sm font-semibold text-kingdom-green">{entry.score} pts</p>
                       </div>
                     );
                   })}
