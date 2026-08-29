@@ -25,6 +25,7 @@ export interface Profile {
   avatar_url: string;
   role: "player" | "admin";
   college_id?: string | null;
+  email?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -74,6 +75,7 @@ export interface UserProgress {
   latestSolveTime?: number;
   mobileNumber?: string;
   collegeName?: string | null;
+  email?: string;
   createdAt?: string;
 }
 
