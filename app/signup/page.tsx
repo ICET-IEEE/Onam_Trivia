@@ -239,7 +239,7 @@ export default function SignUpPage() {
             .insert({
               name: collegeName.trim(),
               normalized_name: normalizedName,
-              is_verified: false,
+              is_verified: true,
             })
             .select("id, name")
             .single();
