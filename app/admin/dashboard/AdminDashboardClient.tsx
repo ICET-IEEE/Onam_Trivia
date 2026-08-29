@@ -3,11 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chapter } from "@/lib/types";
+import { Chapter, UserProgress } from "@/lib/types";
 import { Insignia } from "@/components/Insignia";
 
-export function AdminDashboardClient({ initialChapters }: { initialChapters: Chapter[] }) {
+export function AdminDashboardClient({ 
+  initialChapters, 
+  initialUsersProgress = [] 
+}: { 
+  initialChapters: Chapter[];
+  initialUsersProgress?: UserProgress[];
+}) {
+  const [activeTab, setActiveTab] = useState<"chapters" | "users">("chapters");
   const [chapters, setChapters] = useState<Chapter[]>(initialChapters);
+  const [usersProgress, setUsersProgress] = useState<UserProgress[]>(initialUsersProgress);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(false);
@@ -149,8 +157,32 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
       </header>
 
       <main className="max-w-6xl mx-auto p-8 sm:p-12">
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-display font-bold text-ink">Admin Dashboard</h2>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex border-b border-ivory-line mb-8">
+          <button
+            onClick={() => setActiveTab("chapters")}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === "chapters" 
+                ? "border-kingdom-green text-kingdom-green" 
+                : "border-transparent text-ink-soft hover:text-ink hover:border-ivory-line"
+            }`}
+          >
+            Chapters
+          </button>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+              activeTab === "users" 
+                ? "border-kingdom-green text-kingdom-green" 
+                : "border-transparent text-ink-soft hover:text-ink hover:border-ivory-line"
+            }`}
+          >
+            Users Progress
+          </button>
         </div>
 
         {success && (
@@ -159,78 +191,118 @@ export function AdminDashboardClient({ initialChapters }: { initialChapters: Cha
           </div>
         )}
 
-        <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-ivory-line flex justify-between items-center">
-            <h3 className="text-xl font-display font-bold text-ink">Chapters</h3>
-            <button 
-              onClick={() => openForm()}
-              className="bg-ink hover:bg-ink-deep text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
-              + Add Chapter
-            </button>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint">
-                  <th className="p-4">Number</th>
-                  <th className="p-4">Title</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Created Date</th>
-                  <th className="p-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {chapters.map((chapter) => (
-                  <tr key={chapter.id} className="border-b border-ivory-line hover:bg-ivory/30 transition-colors">
-                    <td className="p-4 font-medium text-ink">{chapter.chapter_number}</td>
-                    <td className="p-4 text-ink">{chapter.title}</td>
-                    <td className="p-4">
-                      {chapter.is_published ? (
-                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-kingdom-green/10 text-kingdom-green">
-                          Published
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-ink/5 text-ink-soft">
-                          Unpublished
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-ink-soft text-sm">
-                      {new Date(chapter.created_at!).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 flex justify-end gap-3">
-                      <button 
-                        onClick={() => router.push(`/admin/chapters/${chapter.id}`)}
-                        className="text-sm font-medium text-kingdom-green hover:text-kingdom-green-deep transition-colors mr-2"
-                      >
-                        Manage Challenges
-                      </button>
-                      <button 
-                        onClick={() => openForm(chapter)} 
-                        className="text-sm font-medium text-gold hover:text-gold-deep transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(chapter.id)} 
-                        className="text-sm font-medium text-rust hover:text-rust-deep transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </td>
+        {activeTab === "chapters" ? (
+          <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-ivory-line flex justify-between items-center">
+              <h3 className="text-xl font-display font-bold text-ink">Chapters</h3>
+              <button 
+                onClick={() => openForm()}
+                className="bg-ink hover:bg-ink-deep text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                + Add Chapter
+              </button>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint">
+                    <th className="p-4">Number</th>
+                    <th className="p-4">Title</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Created Date</th>
+                    <th className="p-4 text-right">Actions</th>
                   </tr>
-                ))}
-                {chapters.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="p-8 text-center text-ink-soft">No chapters found.</td>
+                </thead>
+                <tbody>
+                  {chapters.map((chapter) => (
+                    <tr key={chapter.id} className="border-b border-ivory-line hover:bg-ivory/30 transition-colors">
+                      <td className="p-4 font-medium text-ink">{chapter.chapter_number}</td>
+                      <td className="p-4 text-ink">{chapter.title}</td>
+                      <td className="p-4">
+                        {chapter.is_published ? (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-kingdom-green/10 text-kingdom-green">
+                            Published
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-ink/5 text-ink-soft">
+                            Unpublished
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-ink-soft text-sm">
+                        {new Date(chapter.created_at!).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 flex justify-end gap-3">
+                        <button 
+                          onClick={() => router.push(`/admin/chapters/${chapter.id}`)}
+                          className="text-sm font-medium text-kingdom-green hover:text-kingdom-green-deep transition-colors mr-2"
+                        >
+                          Manage Challenges
+                        </button>
+                        <button 
+                          onClick={() => openForm(chapter)} 
+                          className="text-sm font-medium text-gold hover:text-gold-deep transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(chapter.id)} 
+                          className="text-sm font-medium text-rust hover:text-rust-deep transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {chapters.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-ink-soft">No chapters found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : (
+          <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-ivory-line flex justify-between items-center">
+              <h3 className="text-xl font-display font-bold text-ink">User Progress</h3>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint uppercase tracking-wider">
+                    <th className="p-4">Name</th>
+                    <th className="p-4">Score</th>
+                    <th className="p-4">Challenges Solved</th>
+                    <th className="p-4">Chapters Completed</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                </thead>
+                <tbody>
+                  {usersProgress.map((user) => (
+                    <tr key={user.userId} className="border-b border-ivory-line hover:bg-ivory/30 transition-colors">
+                      <td className="p-4 font-medium text-ink">{user.name}</td>
+                      <td className="p-4 font-bold text-kingdom-green">{user.score} pts</td>
+                      <td className="p-4 text-ink">
+                        {user.challengesSolved} / {user.totalChallenges}
+                      </td>
+                      <td className="p-4 text-ink">
+                        {user.chaptersCompleted} / {user.totalChapters}
+                      </td>
+                    </tr>
+                  ))}
+                  {usersProgress.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-ink-soft">No active users found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Modal Form */}
