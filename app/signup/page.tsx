@@ -346,6 +346,7 @@ export default function SignUpPage() {
             mobile_number: mobileNumber.trim(),
             college_id: finalCollegeId,
             role: "player",
+            email: email.trim(),
           },
           {
             onConflict: "id",

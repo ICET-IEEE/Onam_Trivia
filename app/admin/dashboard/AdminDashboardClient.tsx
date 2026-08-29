@@ -442,6 +442,11 @@ export function AdminDashboardClient({
               </div>
 
               <div className="flex flex-col">
+                <span className="text-xs text-ink-faint uppercase font-bold tracking-wider mb-1">Email</span>
+                <span className="font-medium text-ink">{selectedUser.email || "N/A"}</span>
+              </div>
+
+              <div className="flex flex-col">
                 <span className="text-xs text-ink-faint uppercase font-bold tracking-wider mb-1">College</span>
                 <span className="font-medium text-ink">{selectedUser.collegeName || "N/A"}</span>
               </div>

@@ -29,7 +29,7 @@ export default async function AdminDashboard() {
   // Fetch all profiles (exclude admins if you want, or just get everyone)
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, role, mobile_number, college_id, created_at");
+    .select("id, full_name, role, mobile_number, email, college_id, created_at");
 
   const { data: colleges } = await supabase
     .from("colleges")
@@ -67,6 +67,7 @@ export default async function AdminDashboard() {
           score: 0,
           solvedSet: new Set<string>(),
           mobileNumber: p.mobile_number,
+          email: p.email,
           collegeId: p.college_id,
           createdAt: p.created_at,
         };
@@ -106,6 +107,7 @@ export default async function AdminDashboard() {
       chaptersCompleted,
       totalChapters,
       mobileNumber: u.mobileNumber,
+      email: u.email,
       collegeName: userCollege ? userCollege.name : null,
       createdAt: u.createdAt,
     };
