@@ -193,7 +193,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t border-ivory-line bg-ivory lg:hidden">
+        <div className="absolute top-full left-0 right-0 border-t border-ivory-line bg-ivory shadow-lg lg:hidden">
           <nav className="container-max section-pad flex flex-col gap-1 py-4">
             {links.map((link) => (
               <Link
@@ -221,7 +221,7 @@ export function Navbar() {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center justify-center gap-2 rounded-lg border border-ivory-line px-4 py-3 text-sm font-semibold text-ink hover:bg-rust/5 hover:text-rust"
+                    className="flex items-center justify-center gap-2 rounded-lg border border-ivory-line px-4 py-3 text-sm font-semibold text-rust hover:bg-rust/5 hover:text-rust"
                   >
                     <LogOut className="h-4 w-4" />
                     Sign Out
