@@ -73,7 +73,7 @@ export function AnswerSubmission({ challengeId, points, chapterNumber }: AnswerS
         setMessage("🎉 You have already solved this challenge! Redirecting back to challenges...");
         setAnswer("");
         setTimeout(() => {
-          router.push(`/chapters/${chapterNumber}`);
+          router.replace(`/chapters/${chapterNumber}`);
           router.refresh();
         }, 1500);
         setLoading(false);
@@ -119,7 +119,7 @@ export function AnswerSubmission({ challengeId, points, chapterNumber }: AnswerS
 
         // Redirect back to challenges list page after 1.5s
         setTimeout(() => {
-          router.push(`/chapters/${chapterNumber}`);
+          router.replace(`/chapters/${chapterNumber}`);
           router.refresh();
         }, 1500);
       } else {
