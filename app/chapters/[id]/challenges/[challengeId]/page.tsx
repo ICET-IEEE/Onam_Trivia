@@ -70,6 +70,32 @@ export default async function ChallengeDetailPage({
     notFound();
   }
 
+  // Enforce sequential unlocking
+  if (challenge.order_number > 1) {
+    // Find the previous challenge in the sequence
+    const { data: previousChallenge } = await supabase
+      .from("challenges")
+      .select("id")
+      .eq("chapter_id", chapter.id)
+      .eq("order_number", challenge.order_number - 1)
+      .single();
+
+    if (previousChallenge) {
+      // Check if the user has solved the previous challenge
+      const { data: prevSolve } = await supabase
+        .from("user_solves")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("challenge_id", previousChallenge.id)
+        .maybeSingle();
+
+      if (!prevSolve) {
+        // Redirect back to the chapter page if they haven't solved it yet
+        redirect(`/chapters/${params.id}`);
+      }
+    }
+  }
+
   const diffKey = (challenge.difficulty || "easy").toLowerCase();
   const diff = difficultyConfig[diffKey] || difficultyConfig.easy;
   const DiffIcon = diff.icon;

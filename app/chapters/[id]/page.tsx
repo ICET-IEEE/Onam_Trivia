@@ -150,6 +150,10 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                 <div className="space-y-6 sm:space-y-8 md:space-y-12">
                   {challenges.map((challenge, idx) => {
                     const isSolved = solvedChallengeIds.has(challenge.id);
+                    const previousChallenge = idx > 0 ? challenges[idx - 1] : null;
+                    const isUnlocked = idx === 0 || (previousChallenge && solvedChallengeIds.has(previousChallenge.id));
+                    const isChallengeLocked = !isUnlocked;
+
                     return (
                       <div key={challenge.id} className="relative flex items-start gap-4 sm:gap-6 md:gap-10 group animate-fade-up" style={{ animationDelay: `${idx * 100}ms` }}>
                         
@@ -158,10 +162,14 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                           <div className={`w-12 h-12 sm:w-16 sm:h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center border-4 shadow-sm transition-all duration-500 ${
                             isSolved 
                               ? "bg-kingdom-green border-kingdom-green-pale text-white shadow-kingdom-green/20" 
+                              : isChallengeLocked
+                              ? "bg-ink/5 border-ink/10 text-ink/30"
                               : "bg-white border-ivory-line text-ink-soft group-hover:border-gold/50 group-hover:text-gold"
                           }`}>
                             {isSolved ? (
                               <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
+                            ) : isChallengeLocked ? (
+                              <Lock className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8" />
                             ) : (
                               <span className="font-display text-xl sm:text-2xl md:text-3xl font-bold">{idx + 1}</span>
                             )}
@@ -169,13 +177,17 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                         </div>
 
                         {/* Challenge Card */}
-                        <div className={`flex-1 bg-white rounded-2xl p-5 sm:p-6 md:p-8 border shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_-12px_rgba(184,137,43,0.2)] ${
-                          isSolved ? "border-kingdom-green/30 bg-gradient-to-br from-white to-kingdom-green-pale/20" : "border-ink/5"
+                        <div className={`flex-1 bg-white rounded-2xl p-5 sm:p-6 md:p-8 border shadow-sm transition-all duration-300 ${
+                          isSolved ? "border-kingdom-green/30 bg-gradient-to-br from-white to-kingdom-green-pale/20 group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_-12px_rgba(184,137,43,0.2)]" 
+                          : isChallengeLocked ? "border-ink/5 opacity-60 grayscale filter"
+                          : "border-ink/5 group-hover:-translate-y-1 group-hover:shadow-[0_8px_30px_-12px_rgba(184,137,43,0.2)]"
                         }`}>
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
                             <div className="flex-1">
                               <div className="flex flex-wrap items-center gap-3 mb-2 sm:mb-3">
-                                <h3 className="text-lg sm:text-xl md:text-2xl font-display font-bold text-ink group-hover:text-gold transition-colors">{challenge.title}</h3>
+                                <h3 className={`text-lg sm:text-xl md:text-2xl font-display font-bold text-ink transition-colors ${!isChallengeLocked && "group-hover:text-gold"}`}>
+                                  {isChallengeLocked ? `Challenge ${idx + 1}` : challenge.title}
+                                </h3>
                                 {isSolved && (
                                   <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-kingdom-green/10 text-kingdom-green">
                                     Solved ✓
@@ -183,24 +195,31 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                                 )}
                               </div>
                               <p className="text-sm sm:text-base text-ink-soft leading-relaxed max-w-xl">
-                                {challenge.description}
+                                {isChallengeLocked ? "Complete the previous challenge to reveal this trial." : challenge.description}
                               </p>
                             </div>
                             
                             <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 shrink-0 mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-0 border-ink/5 w-full sm:w-auto">
                               <span className="text-base sm:text-lg font-bold text-rust">{challenge.points} <span className="text-xs sm:text-sm font-normal text-ink-soft">pts</span></span>
-                              <ChallengeLink 
-                                challengeId={challenge.id}
-                                chapterId={params.id}
-                                className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                                  isSolved 
-                                    ? "bg-kingdom-green-pale text-kingdom-green hover:bg-kingdom-green hover:text-white" 
-                                    : "bg-ink text-white hover:bg-kingdom-green hover:shadow-lg"
-                                }`}
-                              >
-                                {isSolved ? "Review" : "Start"}
-                                <ChevronRight className="w-4 h-4" />
-                              </ChallengeLink>
+                              {isChallengeLocked ? (
+                                <button disabled className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold bg-ink/10 text-ink/40 cursor-not-allowed">
+                                  Locked
+                                  <Lock className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <ChallengeLink 
+                                  challengeId={challenge.id}
+                                  chapterId={params.id}
+                                  className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                                    isSolved 
+                                      ? "bg-kingdom-green-pale text-kingdom-green hover:bg-kingdom-green hover:text-white" 
+                                      : "bg-ink text-white hover:bg-kingdom-green hover:shadow-lg"
+                                  }`}
+                                >
+                                  {isSolved ? "Review" : "Start"}
+                                  <ChevronRight className="w-4 h-4" />
+                                </ChallengeLink>
+                              )}
                             </div>
                           </div>
                         </div>
