@@ -15,6 +15,8 @@ export interface LeaderboardEntry {
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentUserId = user?.id;
 
   // Fetch profiles
   const { data: profilesData } = await supabase
@@ -143,6 +145,8 @@ export default async function LeaderboardPage() {
                       <div
                         key={entry.userId}
                         className={`flex flex-col items-center rounded-xl sm:rounded-2xl border p-3 sm:p-8 text-center transition-transform ${
+                          entry.userId === currentUserId ? "ring-2 ring-kingdom-green shadow-xl shadow-kingdom-green/10 scale-[1.02]" : ""
+                        } ${
                           entry.rank === 1
                             ? "border-gold bg-gold/[0.06] -translate-y-4 sm:-translate-y-8 shadow-lg shadow-gold/5 z-10"
                             : "border-ivory-line bg-white"
@@ -176,7 +180,14 @@ export default async function LeaderboardPage() {
                   </thead>
                   <tbody>
                     {leaderboardList.map((entry) => (
-                      <tr key={entry.userId} className="border-b border-ivory-line last:border-0 hover:bg-ivory/30 transition-colors">
+                      <tr 
+                        key={entry.userId} 
+                        className={`border-b border-ivory-line last:border-0 transition-colors ${
+                          entry.userId === currentUserId 
+                            ? "bg-kingdom-green/10 hover:bg-kingdom-green/20" 
+                            : "hover:bg-ivory/30"
+                        }`}
+                      >
                         <td className="px-6 py-4 font-display text-base text-kingdom-green">
                           #{entry.rank}
                         </td>
