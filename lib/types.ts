@@ -63,6 +63,17 @@ export interface LeaderboardTeam {
   lastSolved: string;
 }
 
+export interface UserProgress {
+  userId: string;
+  name: string;
+  score: number;
+  challengesSolved: number;
+  totalChallenges: number;
+  chaptersCompleted: number;
+  totalChapters: number;
+  latestSolveTime?: number;
+}
+
 export interface Feature {
   title: string;
   description: string;
