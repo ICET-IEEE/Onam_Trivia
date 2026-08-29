@@ -10,12 +10,21 @@ export interface Chapter {
   updated_at?: string;
 }
 
+export interface College {
+  id: string;
+  name: string;
+  normalized_name?: string;
+  is_verified: boolean;
+  created_at?: string;
+}
+
 export interface Profile {
   id: string;
   full_name: string;
   mobile_number: string;
   avatar_url: string;
   role: "player" | "admin";
+  college_id?: string | null;
   created_at?: string;
   updated_at?: string;
 }
