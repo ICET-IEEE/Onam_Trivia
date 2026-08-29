@@ -12,7 +12,7 @@ export default async function ChaptersPage() {
   return (
     <>
       <Navbar />
-      <main className="section-pad pb-24 pt-32 sm:pt-40">
+      <main className="section-pad pb-24 pt-10 sm:pt-20">
         <div className="container-max">
           <div className="inline-flex items-center gap-2 rounded-full border border-rust/20 bg-rust/5 px-3 py-1 mb-6">
             <span className="h-2 w-2 rounded-full bg-rust animate-pulse-slow"></span>
