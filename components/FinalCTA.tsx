@@ -1,7 +1,15 @@
 import { Button } from "./Button";
 import { Reveal } from "./Reveal";
+import { createClient } from "@/lib/supabase/server";
 
-export function FinalCTA() {
+export async function FinalCTA() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const enterHref = user ? "/chapters" : "/signup";
+
   return (
     <section className="relative overflow-hidden section-pad py-28 sm:py-36">
       <div
@@ -20,7 +28,7 @@ export function FinalCTA() {
             The kingdom remembers those who rise to the trial.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button href="/signup" variant="primary" withArrow>
+            <Button href={enterHref} variant="primary" withArrow>
               Enter the Trial
             </Button>
           </div>
