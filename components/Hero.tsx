@@ -1,8 +1,14 @@
 import { Sparkles } from "lucide-react";
 import { Button } from "./Button";
 import { Insignia } from "./Insignia";
+import { createClient } from "@/lib/supabase/server";
 
-export function Hero() {
+export async function Hero() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const beginHref = user ? "/chapters" : "/signup";
+
   return (
     <section className="relative overflow-hidden section-pad pt-16 pb-24 sm:pt-20 sm:pb-32">
       <div className="container-max grid items-center gap-16 lg:grid-cols-2">
@@ -25,7 +31,7 @@ export function Hero() {
           </p>
 
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Button href="/signup" variant="primary" withArrow>
+            <Button href={beginHref} variant="primary" withArrow>
               Begin the Trial
             </Button>
             <Button href="/#how-it-works" variant="secondary">
