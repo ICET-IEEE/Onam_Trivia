@@ -72,6 +72,9 @@ export interface UserProgress {
   chaptersCompleted: number;
   totalChapters: number;
   latestSolveTime?: number;
+  mobileNumber?: string;
+  collegeName?: string | null;
+  createdAt?: string;
 }
 
 export interface Feature {

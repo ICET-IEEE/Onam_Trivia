@@ -4,9 +4,9 @@ import { AdminDashboardClient } from "./AdminDashboardClient";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     redirect("/admin");
   }
@@ -29,7 +29,11 @@ export default async function AdminDashboard() {
   // Fetch all profiles (exclude admins if you want, or just get everyone)
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, role");
+    .select("id, full_name, role, mobile_number, college_id, created_at");
+
+  const { data: colleges } = await supabase
+    .from("colleges")
+    .select("id, name");
 
   const { data: solves } = await supabase
     .from("user_solves")
@@ -62,6 +66,9 @@ export default async function AdminDashboard() {
           name: (p.full_name && p.full_name !== "Challenger") ? p.full_name : "Player",
           score: 0,
           solvedSet: new Set<string>(),
+          mobileNumber: p.mobile_number,
+          collegeId: p.college_id,
+          createdAt: p.created_at,
         };
       }
     });
@@ -87,7 +94,9 @@ export default async function AdminDashboard() {
         }
       });
     }
-    
+
+    const userCollege = colleges?.find((c) => c.id === u.collegeId);
+
     return {
       userId: u.userId,
       name: u.name,
@@ -96,6 +105,9 @@ export default async function AdminDashboard() {
       totalChallenges,
       chaptersCompleted,
       totalChapters,
+      mobileNumber: u.mobileNumber,
+      collegeName: userCollege ? userCollege.name : null,
+      createdAt: u.createdAt,
     };
   }).sort((a, b) => b.score - a.score);
 
