@@ -38,7 +38,6 @@ export default async function ChapterPage({ params }: { params: { id: string } }
     }
   }
 
-  // Fetch published challenges for chapter
   const { data: challengesData } = await supabase
     .from('challenges')
     .select('*')
@@ -47,7 +46,34 @@ export default async function ChapterPage({ params }: { params: { id: string } }
 
   const challenges = challengesData || [];
 
-  const isLocked = chapter.status === "locked";
+  const isLockedByStatus = chapter.status === "locked";
+  let isPrevChapterCompleted = true;
+
+  if (chapter.chapter_number > 1) {
+    if (!user) {
+      isPrevChapterCompleted = false;
+    } else {
+      const { data: prevChapter } = await supabase
+        .from('chapters')
+        .select('id')
+        .eq('chapter_number', chapter.chapter_number - 1)
+        .single();
+        
+      if (prevChapter) {
+        const { data: prevChallenges } = await supabase
+          .from('challenges')
+          .select('id')
+          .eq('chapter_id', prevChapter.id);
+          
+        if (prevChallenges && prevChallenges.length > 0) {
+          isPrevChapterCompleted = prevChallenges.every(c => solvedChallengeIds.has(c.id));
+        }
+      }
+    }
+  }
+
+  const isChapterUnlocked = !isLockedByStatus && isPrevChapterCompleted;
+
   const numStr = String(chapter.chapter_number).padStart(2, '0');
   const Icon = iconMap[numStr] || Crown;
   
@@ -107,7 +133,7 @@ export default async function ChapterPage({ params }: { params: { id: string } }
         {/* Content Section */}
         <div className="container-max px-6 xl:px-0 py-16 sm:py-24 relative">
           
-          {isLocked ? (
+          {isLockedByStatus ? (
             <div className="max-w-4xl mx-auto relative rounded-3xl overflow-hidden border border-ink/5 shadow-xl bg-white">
               {/* Blurred background hinting at challenges */}
               <div className="absolute inset-0 opacity-40 blur-xl scale-105 select-none pointer-events-none" aria-hidden="true">
@@ -128,8 +154,7 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                 </div>
                 <h2 className="text-3xl sm:text-4xl font-display font-bold text-ink mb-4">Chapter Locked</h2>
                 <p className="text-lg sm:text-xl text-ink-soft max-w-lg mx-auto leading-relaxed">
-                  The path forward is sealed. You must prove yourself in the previous chapters before accessing 
-                  <span className="font-semibold text-ink"> {chapter.title}</span>.
+                  This chapter is currently locked by the administrators.
                 </p>
                 <Link href="/" className="mt-8 sm:mt-10 inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-ink text-white rounded-full font-bold hover:bg-kingdom-green transition-colors shadow-lg hover:shadow-xl hover:-translate-y-1 text-sm sm:text-base">
                   Return to Dashboard
@@ -138,6 +163,18 @@ export default async function ChapterPage({ params }: { params: { id: string } }
             </div>
           ) : (
             <div className="max-w-4xl mx-auto">
+              {!isPrevChapterCompleted && (
+                <div className="mb-12 bg-rust/5 border border-rust/20 rounded-2xl p-6 text-center animate-fade-up">
+                  <div className="w-12 h-12 mx-auto bg-rust/10 rounded-full flex items-center justify-center text-rust mb-4">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold text-ink mb-2">Complete Previous Chapter</h3>
+                  <p className="text-ink-soft">
+                    You must complete all challenges in the previous chapter to unlock these trials.
+                  </p>
+                </div>
+              )}
+              
               <h2 className="text-3xl font-display font-bold text-ink mb-12 flex items-center gap-4">
                 The Path of Trials
                 <div className="h-px flex-1 bg-gradient-to-r from-ink/10 to-transparent"></div>
@@ -151,7 +188,7 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                   {challenges.map((challenge, idx) => {
                     const isSolved = solvedChallengeIds.has(challenge.id);
                     const previousChallenge = idx > 0 ? challenges[idx - 1] : null;
-                    const isUnlocked = idx === 0 || (previousChallenge && solvedChallengeIds.has(previousChallenge.id));
+                    const isUnlocked = isChapterUnlocked && (idx === 0 || (previousChallenge && solvedChallengeIds.has(previousChallenge.id)));
                     const isChallengeLocked = !isUnlocked;
 
                     return (
@@ -195,7 +232,9 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                                 )}
                               </div>
                               <p className="text-sm sm:text-base text-ink-soft leading-relaxed max-w-xl">
-                                {isChallengeLocked ? "Complete the previous challenge to reveal this trial." : challenge.description}
+                                {isChallengeLocked 
+                                  ? (!isPrevChapterCompleted ? "Complete the previous chapter to reveal this trial." : "Complete the previous challenge to reveal this trial.") 
+                                  : challenge.description}
                               </p>
                             </div>
                             
