@@ -149,7 +149,7 @@ export function Navbar() {
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-ivory-line bg-white p-2 shadow-lg z-50 animate-fade-up">
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-ivory-line bg-ivory p-2 shadow-lg z-50 animate-fade-up">
                   <div className="px-3 py-3 border-b border-ivory-line mb-2">
                     <p className="text-sm font-medium text-ink truncate">{user.name}</p>
                     <p className="text-xs text-ink-soft truncate">{user.email}</p>
