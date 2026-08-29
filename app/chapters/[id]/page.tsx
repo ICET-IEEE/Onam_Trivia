@@ -245,17 +245,13 @@ export default async function ChapterPage({ params }: { params: { id: string } }
                                   Locked
                                   <Lock className="w-4 h-4" />
                                 </button>
-                              ) : (
+                              ) : !isSolved && (
                                 <ChallengeLink 
                                   challengeId={challenge.id}
                                   chapterId={params.id}
-                                  className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                                    isSolved 
-                                      ? "bg-kingdom-green-pale text-kingdom-green hover:bg-kingdom-green hover:text-white" 
-                                      : "bg-ink text-white hover:bg-kingdom-green hover:shadow-lg"
-                                  }`}
+                                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all bg-ink text-white hover:bg-kingdom-green hover:shadow-lg"
                                 >
-                                  {isSolved ? "Review" : "Start"}
+                                  Start
                                   <ChevronRight className="w-4 h-4" />
                                 </ChallengeLink>
                               )}
