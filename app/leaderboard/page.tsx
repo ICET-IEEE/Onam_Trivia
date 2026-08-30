@@ -174,8 +174,6 @@ export default async function LeaderboardPage() {
                       <th className="px-6 py-4">Rank</th>
                       <th className="px-6 py-4">Challenger</th>
                       <th className="px-6 py-4">Score</th>
-                      <th className="px-6 py-4">Progress</th>
-                      <th className="px-6 py-4">Last Solved</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -193,18 +191,6 @@ export default async function LeaderboardPage() {
                         </td>
                         <td className="px-6 py-4 font-medium text-ink">{entry.name}</td>
                         <td className="px-6 py-4 font-semibold text-kingdom-green">{entry.score} pts</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-24 overflow-hidden rounded-full bg-ivory-deep">
-                              <div
-                                className="h-full rounded-full bg-gold"
-                                style={{ width: `${entry.progress}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-ink-faint">{entry.progress}%</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-ink-soft">{entry.lastSolved}</td>
                       </tr>
                     ))}
                   </tbody>
