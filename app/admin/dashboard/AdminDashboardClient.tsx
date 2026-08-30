@@ -3,20 +3,23 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Chapter, UserProgress } from "@/lib/types";
+import { Chapter, UserProgress, FirstSolver } from "@/lib/types";
 import { Insignia } from "@/components/Insignia";
 
 export function AdminDashboardClient({
   initialChapters,
-  initialUsersProgress = []
+  initialUsersProgress = [],
+  initialFirstSolvers = [],
 }: {
   initialChapters: Chapter[];
   initialUsersProgress?: UserProgress[];
+  initialFirstSolvers?: FirstSolver[];
 }) {
-  const [activeTab, setActiveTab] = useState<"chapters" | "users">("chapters");
+  const [activeTab, setActiveTab] = useState<"chapters" | "users" | "leaderboard" | "first-solvers">("chapters");
   const [chapters, setChapters] = useState<Chapter[]>(initialChapters);
   const [usersProgress, setUsersProgress] = useState<UserProgress[]>(initialUsersProgress);
   const [selectedUser, setSelectedUser] = useState<UserProgress | null>(null);
+  const [selectedChallenge, setSelectedChallenge] = useState<FirstSolver | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingChapter, setEditingChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(false);
@@ -182,6 +185,24 @@ export function AdminDashboardClient({
           >
             Users Progress
           </button>
+          <button
+            onClick={() => setActiveTab("leaderboard")}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "leaderboard"
+                ? "border-kingdom-green text-kingdom-green"
+                : "border-transparent text-ink-soft hover:text-ink hover:border-ivory-line"
+              }`}
+          >
+            Leaderboard
+          </button>
+          <button
+            onClick={() => setActiveTab("first-solvers")}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "first-solvers"
+                ? "border-kingdom-green text-kingdom-green"
+                : "border-transparent text-ink-soft hover:text-ink hover:border-ivory-line"
+              }`}
+          >
+            First Solvers
+          </button>
         </div>
 
         {success && (
@@ -263,7 +284,7 @@ export function AdminDashboardClient({
               </table>
             </div>
           </section>
-        ) : (
+        ) : activeTab === "users" ? (
           <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
             <div className="p-6 border-b border-ivory-line flex justify-between items-center">
               <h3 className="text-xl font-display font-bold text-ink">User Progress</h3>
@@ -299,6 +320,91 @@ export function AdminDashboardClient({
                   {usersProgress.length === 0 && (
                     <tr>
                       <td colSpan={4} className="p-8 text-center text-ink-soft">No active users found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : activeTab === "leaderboard" ? (
+          <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-ivory-line flex justify-between items-center">
+              <h3 className="text-xl font-display font-bold text-ink">Completion Leaderboard</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint uppercase tracking-wider">
+                    <th className="p-4">Rank</th>
+                    <th className="p-4">Name</th>
+                    <th className="p-4">College</th>
+                    <th className="p-4">Completion Time</th>
+                    <th className="p-4">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersProgress
+                    .filter(u => u.totalChallenges > 0 && u.challengesSolved === u.totalChallenges)
+                    .sort((a, b) => (a.latestSolveTime || Infinity) - (b.latestSolveTime || Infinity))
+                    .map((user, index) => (
+                      <tr
+                        key={user.userId}
+                        onClick={() => setSelectedUser(user)}
+                        className="border-b border-ivory-line hover:bg-ivory/30 transition-colors cursor-pointer"
+                      >
+                        <td className="p-4 font-display font-bold text-kingdom-green">#{index + 1}</td>
+                        <td className="p-4 font-medium text-ink">{user.name}</td>
+                        <td className="p-4 text-ink">{user.collegeName || "N/A"}</td>
+                        <td className="p-4 text-ink">
+                          {user.latestSolveTime ? new Date(user.latestSolveTime).toLocaleString() : "N/A"}
+                        </td>
+                        <td className="p-4 font-bold text-kingdom-green">{user.score} pts</td>
+                      </tr>
+                  ))}
+                  {usersProgress.filter(u => u.totalChallenges > 0 && u.challengesSolved === u.totalChallenges).length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="p-8 text-center text-ink-soft">No users have completed all challenges yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : (
+          <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-ivory-line flex justify-between items-center">
+              <h3 className="text-xl font-display font-bold text-ink">First Solvers</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint uppercase tracking-wider">
+                    <th className="p-4">Chapter</th>
+                    <th className="p-4">Challenge</th>
+                    <th className="p-4">First Solver</th>
+                    <th className="p-4">Solved At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {initialFirstSolvers.map((solver) => (
+                    <tr
+                      key={solver.challengeId}
+                      onClick={() => setSelectedChallenge(solver)}
+                      className="border-b border-ivory-line hover:bg-ivory/30 transition-colors cursor-pointer"
+                    >
+                      <td className="p-4 font-display font-bold text-ink">Chapter {solver.chapterNumber}</td>
+                      <td className="p-4 font-medium text-ink">{solver.challengeTitle}</td>
+                      <td className="p-4 text-kingdom-green font-bold">
+                        {solver.userName ? solver.userName : <span className="text-ink-soft font-normal">Unsolved</span>}
+                      </td>
+                      <td className="p-4 text-ink">
+                        {solver.solvedAt ? new Date(solver.solvedAt).toLocaleString() : "N/A"}
+                      </td>
+                    </tr>
+                  ))}
+                  {initialFirstSolvers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-ink-soft">No challenges found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -473,6 +579,61 @@ export function AdminDashboardClient({
             <div className="p-6 border-t border-ivory-line flex justify-end">
               <button
                 onClick={() => setSelectedUser(null)}
+                className="bg-ink hover:bg-ink-deep text-white px-6 py-2.5 rounded-full font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenge Solvers Modal */}
+      {selectedChallenge && (
+        <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-ivory-line flex justify-between items-center bg-ivory/50">
+              <h2 className="text-xl font-display font-bold text-ink">
+                Solvers: {selectedChallenge.challengeTitle}
+              </h2>
+              <button onClick={() => setSelectedChallenge(null)} className="text-ink-soft hover:text-ink">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint uppercase tracking-wider">
+                    <th className="p-4">Rank</th>
+                    <th className="p-4">Name</th>
+                    <th className="p-4">College</th>
+                    <th className="p-4">Solved At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedChallenge.solvers.map((solver, index) => (
+                    <tr key={index} className="border-b border-ivory-line hover:bg-ivory/30 transition-colors">
+                      <td className="p-4 font-display font-bold text-kingdom-green">#{index + 1}</td>
+                      <td className="p-4 font-medium text-ink">{solver.userName}</td>
+                      <td className="p-4 text-ink">{solver.collegeName || "N/A"}</td>
+                      <td className="p-4 text-ink">{new Date(solver.solvedAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {selectedChallenge.solvers.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-ink-soft">No one has solved this challenge yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-6 border-t border-ivory-line flex justify-end bg-white">
+              <button
+                onClick={() => setSelectedChallenge(null)}
                 className="bg-ink hover:bg-ink-deep text-white px-6 py-2.5 rounded-full font-medium transition-colors"
               >
                 Close

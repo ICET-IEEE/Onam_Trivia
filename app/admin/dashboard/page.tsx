@@ -37,11 +37,11 @@ export default async function AdminDashboard() {
 
   const { data: solves } = await supabase
     .from("user_solves")
-    .select("user_id, challenge_id, points_awarded");
+    .select("user_id, challenge_id, points_awarded, solved_at");
 
   const { data: challenges } = await supabase
     .from("challenges")
-    .select("id, chapter_id")
+    .select("id, chapter_id, title")
     .eq("is_published", true);
 
   const totalChallenges = challenges ? challenges.length : 0;
@@ -70,6 +70,7 @@ export default async function AdminDashboard() {
           email: p.email,
           collegeId: p.college_id,
           createdAt: p.created_at,
+          latestSolveTime: 0,
         };
       }
     });
@@ -80,6 +81,10 @@ export default async function AdminDashboard() {
       if (usersProgressMap[s.user_id]) {
         usersProgressMap[s.user_id].score += s.points_awarded || 0;
         usersProgressMap[s.user_id].solvedSet.add(s.challenge_id);
+        const time = new Date(s.solved_at).getTime();
+        if (time > usersProgressMap[s.user_id].latestSolveTime) {
+          usersProgressMap[s.user_id].latestSolveTime = time;
+        }
       }
     });
   }
@@ -110,8 +115,60 @@ export default async function AdminDashboard() {
       email: u.email,
       collegeName: userCollege ? userCollege.name : null,
       createdAt: u.createdAt,
+      latestSolveTime: u.latestSolveTime,
     };
   }).sort((a, b) => b.score - a.score);
 
-  return <AdminDashboardClient initialChapters={chapters || []} initialUsersProgress={usersProgress} />;
+  const firstSolvers: any[] = [];
+  if (challenges && solves && profiles && chapters) {
+    challenges.forEach((c) => {
+      const challengeSolves = solves.filter(s => s.challenge_id === c.id);
+      const chapter = chapters.find(ch => ch.id === c.chapter_id);
+      const chapterNumber = chapter ? chapter.chapter_number : "?";
+      
+      if (challengeSolves.length > 0) {
+        challengeSolves.sort((a, b) => new Date(a.solved_at).getTime() - new Date(b.solved_at).getTime());
+        const firstSolve = challengeSolves[0];
+        const user = profiles.find(p => p.id === firstSolve.user_id);
+        
+        const solvers = challengeSolves.map(s => {
+          const solverProfile = profiles.find(p => p.id === s.user_id);
+          const solverCollege = solverProfile && solverProfile.college_id ? colleges?.find(c => c.id === solverProfile.college_id) : null;
+          return {
+            userName: (solverProfile && solverProfile.full_name && solverProfile.full_name !== "Challenger") ? solverProfile.full_name : "Player",
+            collegeName: solverCollege ? solverCollege.name : null,
+            solvedAt: s.solved_at
+          };
+        });
+
+        firstSolvers.push({
+          challengeId: c.id,
+          challengeTitle: c.title,
+          chapterNumber,
+          userName: (user && user.full_name && user.full_name !== "Challenger") ? user.full_name : "Player",
+          solvedAt: firstSolve.solved_at,
+          solvers
+        });
+      } else {
+        firstSolvers.push({
+          challengeId: c.id,
+          challengeTitle: c.title,
+          chapterNumber,
+          userName: null,
+          solvedAt: null,
+          solvers: []
+        });
+      }
+    });
+  }
+
+  // Sort firstSolvers by chapter number and then by challenge ID or title if needed
+  firstSolvers.sort((a, b) => {
+    const numA = parseInt(a.chapterNumber) || 0;
+    const numB = parseInt(b.chapterNumber) || 0;
+    if (numA !== numB) return numA - numB;
+    return a.challengeTitle.localeCompare(b.challengeTitle);
+  });
+
+  return <AdminDashboardClient initialChapters={chapters || []} initialUsersProgress={usersProgress} initialFirstSolvers={firstSolvers} />;
 }
