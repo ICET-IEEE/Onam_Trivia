@@ -611,7 +611,7 @@ export function AdminDashboardClient({
                       <td className="p-4 font-display font-bold text-kingdom-green">#{index + 1}</td>
                       <td className="p-4 font-medium text-ink">{solver.userName}</td>
                       <td className="p-4 text-ink">{solver.collegeName || "N/A"}</td>
-                      <td className="p-4 text-ink">{new Date(solver.solvedAt).toLocaleString()}</td>
+                      <td className="p-4 text-ink">{new Date(solver.solvedAt).toLocaleString('en-GB')}</td>
                     </tr>
                   ))}
                   {selectedChallenge.solvers.length === 0 && (
