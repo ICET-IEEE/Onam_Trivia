@@ -41,7 +41,7 @@ export default async function AdminDashboard() {
 
   const { data: challenges } = await supabase
     .from("challenges")
-    .select("id, chapter_id, title")
+    .select("id, chapter_id, title, order_number")
     .eq("is_published", true);
 
   const totalChallenges = challenges ? challenges.length : 0;
@@ -145,6 +145,7 @@ export default async function AdminDashboard() {
           challengeId: c.id,
           challengeTitle: c.title,
           chapterNumber,
+          orderNumber: c.order_number,
           userName: (user && user.full_name && user.full_name !== "Challenger") ? user.full_name : "Player",
           solvedAt: firstSolve.solved_at,
           solvers
@@ -154,6 +155,7 @@ export default async function AdminDashboard() {
           challengeId: c.id,
           challengeTitle: c.title,
           chapterNumber,
+          orderNumber: c.order_number,
           userName: null,
           solvedAt: null,
           solvers: []
@@ -162,11 +164,14 @@ export default async function AdminDashboard() {
     });
   }
 
-  // Sort firstSolvers by chapter number and then by challenge ID or title if needed
+  // Sort firstSolvers by chapter number and then by challenge order_number
   firstSolvers.sort((a, b) => {
     const numA = parseInt(a.chapterNumber) || 0;
     const numB = parseInt(b.chapterNumber) || 0;
     if (numA !== numB) return numA - numB;
+    const orderA = a.orderNumber || 0;
+    const orderB = b.orderNumber || 0;
+    if (orderA !== orderB) return orderA - orderB;
     return a.challengeTitle.localeCompare(b.challengeTitle);
   });
 

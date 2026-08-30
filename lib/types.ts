@@ -89,6 +89,7 @@ export interface FirstSolver {
   challengeId: string;
   challengeTitle: string;
   chapterNumber: string;
+  orderNumber?: number;
   userName: string | null;
   solvedAt: string | null;
   solvers: ChallengeSolverDetails[];
