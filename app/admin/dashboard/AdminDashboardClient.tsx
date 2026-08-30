@@ -381,8 +381,6 @@ export function AdminDashboardClient({
                   <tr className="bg-ivory/50 border-b border-ivory-line text-sm font-semibold text-ink-faint uppercase tracking-wider">
                     <th className="p-4">Chapter</th>
                     <th className="p-4">Challenge</th>
-                    <th className="p-4">First Solver</th>
-                    <th className="p-4">Solved At</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -394,17 +392,11 @@ export function AdminDashboardClient({
                     >
                       <td className="p-4 font-display font-bold text-ink">Chapter {solver.chapterNumber}</td>
                       <td className="p-4 font-medium text-ink">{solver.challengeTitle}</td>
-                      <td className="p-4 text-kingdom-green font-bold">
-                        {solver.userName ? solver.userName : <span className="text-ink-soft font-normal">Unsolved</span>}
-                      </td>
-                      <td className="p-4 text-ink">
-                        {solver.solvedAt ? new Date(solver.solvedAt).toLocaleString() : "N/A"}
-                      </td>
                     </tr>
                   ))}
                   {initialFirstSolvers.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-ink-soft">No challenges found.</td>
+                      <td colSpan={2} className="p-8 text-center text-ink-soft">No challenges found.</td>
                     </tr>
                   )}
                 </tbody>
