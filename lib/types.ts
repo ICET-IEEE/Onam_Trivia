@@ -79,6 +79,21 @@ export interface UserProgress {
   createdAt?: string;
 }
 
+export interface ChallengeSolverDetails {
+  userName: string;
+  collegeName: string | null;
+  solvedAt: string;
+}
+
+export interface FirstSolver {
+  challengeId: string;
+  challengeTitle: string;
+  chapterNumber: string;
+  userName: string | null;
+  solvedAt: string | null;
+  solvers: ChallengeSolverDetails[];
+}
+
 export interface Feature {
   title: string;
   description: string;
