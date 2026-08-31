@@ -313,8 +313,8 @@ export function AnimatedCountdown({
     >
       <div
         className={cn(
-          "grid max-w-full grid-cols-2 items-stretch gap-2 sm:flex sm:flex-wrap sm:justify-center",
-          showSeparators && "sm:gap-0",
+          "flex max-w-full items-stretch justify-center gap-2 sm:flex-wrap",
+          showSeparators && "gap-0",
         )}
       >
         {visibleUnits.map((unit, index) => (
@@ -333,7 +333,7 @@ export function AnimatedCountdown({
             {showSeparators && index < visibleUnits.length - 1 && (
               <span
                 className={cn(
-                  "hidden items-center px-2 text-2xl font-semibold text-muted-foreground/50 sm:flex",
+                  "flex items-center px-1 sm:px-2 text-xl sm:text-2xl font-semibold text-muted-foreground/50",
                   variant === "digital" && "font-mono text-cyan-200/45",
                 )}
                 aria-hidden
