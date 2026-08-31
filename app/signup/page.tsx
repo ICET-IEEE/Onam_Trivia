@@ -25,6 +25,7 @@ export default function SignUpPage() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   async function handleSignUp(
@@ -377,9 +378,9 @@ export default function SignUpPage() {
       );
 
       setLoading(false);
-
+      
       setTimeout(() => {
-        router.push("/");
+        router.push("/?signup=success");
       }, 1500);
     } catch (err) {
       console.error(
@@ -400,7 +401,8 @@ export default function SignUpPage() {
   }
 
   return (
-    <AuthShell
+    <>
+      <AuthShell
       title="Enter the Trial."
       subtitle="Create an account to begin your ascent."
       footer={
@@ -517,6 +519,7 @@ export default function SignUpPage() {
             : "Create Your Account"}
         </Button>
       </form>
-    </AuthShell>
+      </AuthShell>
+    </>
   );
 }

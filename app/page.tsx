@@ -7,6 +7,8 @@ import { TeamSection } from "@/components/TeamSection";
 import { LeaderboardPreview } from "@/components/LeaderboardPreview";
 import { FinalCTA } from "@/components/FinalCTA";
 import { Footer } from "@/components/Footer";
+import { WhatsAppModal } from "@/components/WhatsAppModal";
+import { Suspense } from "react";
 
 export default function Home() {
   return (
@@ -22,6 +24,9 @@ export default function Home() {
         <FinalCTA />
       </main>
       <Footer />
+      <Suspense fallback={null}>
+        <WhatsAppModal />
+      </Suspense>
     </>
   );
 }
