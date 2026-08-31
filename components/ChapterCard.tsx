@@ -15,7 +15,7 @@ const iconMap: Record<string, React.ElementType> = {
 
 const dateMap: Record<string, string> = {
   "01": "02-09-2026 7:00PM",
-  "02": "02-09-2026 7:00PM",
+  "02": "02-09-2026 8:30PM",
   "03": "03-09-2026 7:00PM",
   "04": "05-09-2026 7:00PM",
 };
