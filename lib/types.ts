@@ -41,6 +41,7 @@ export interface Challenge {
   points: number;
   image_url?: string;
   audio_url?: string;
+  video_url?: string;
   flag_hash?: string; // DEPRECATED: Use challenge_answers table
   hint?: string;
   is_published: boolean;
