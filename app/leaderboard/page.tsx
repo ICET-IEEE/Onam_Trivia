@@ -11,6 +11,7 @@ export interface LeaderboardEntry {
   progress: number;
   lastSolved: string;
   latestSolveTime: number;
+  completedAll: boolean;
 }
 
 export default async function LeaderboardPage() {
@@ -95,8 +96,12 @@ export default async function LeaderboardPage() {
       progress: total > 0 ? Math.round((data.solvedSet.size / total) * 100) : 0,
       lastSolved: data.latestSolveText,
       latestSolveTime: data.latestSolveTime,
+      completedAll: total > 0 ? data.solvedSet.size === total : false,
     }))
     .sort((a, b) => {
+      if (a.completedAll !== b.completedAll) {
+        return a.completedAll ? -1 : 1;
+      }
       if (b.score !== a.score) return b.score - a.score;
       if (a.latestSolveTime && b.latestSolveTime) return a.latestSolveTime - b.latestSolveTime;
       return a.name.localeCompare(b.name);
