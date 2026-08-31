@@ -13,10 +13,18 @@ const iconMap: Record<string, React.ElementType> = {
   "04": Flame,
 };
 
+const dateMap: Record<string, string> = {
+  "01": "02-09-2026 7:00PM",
+  "02": "02-09-2026 7:00PM",
+  "03": "03-09-2026 7:00PM",
+  "04": "05-09-2026 7:00PM",
+};
+
 export function ChapterCard({ chapter }: ChapterCardProps) {
   const isLocked = chapter.status === "locked";
   const numStr = String(chapter.chapter_number).padStart(2, '0');
   const Icon = iconMap[numStr] || Crown;
+  const releaseDate = dateMap[numStr];
 
   const cardContent = (
     <div 
@@ -52,11 +60,18 @@ export function ChapterCard({ chapter }: ChapterCardProps) {
         </p>
 
         <div className="flex flex-col gap-3 pt-5 border-t border-ink/5">
-          <div className="flex justify-end items-center gap-2 text-xs">
-            <span className="font-semibold text-ink-faint uppercase tracking-wider">Level:</span>
-            <span className={`font-medium ${isLocked ? "text-ink-soft/60" : "text-kingdom-green"}`}>
-              {chapter.difficulty || "Normal"}
-            </span>
+          <div className="flex justify-between items-center gap-2 text-xs">
+            {releaseDate && (
+              <span className={`font-medium ${isLocked ? "text-ink-soft/60" : "text-ink-soft"}`}>
+                {releaseDate}
+              </span>
+            )}
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="font-semibold text-ink-faint uppercase tracking-wider">Level:</span>
+              <span className={`font-medium ${isLocked ? "text-ink-soft/60" : "text-kingdom-green"}`}>
+                {chapter.difficulty || "Normal"}
+              </span>
+            </div>
           </div>
         </div>
       </div>
