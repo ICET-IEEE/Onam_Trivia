@@ -1,17 +1,17 @@
 import { Sparkles } from "lucide-react";
 import { Button } from "./Button";
-import { Insignia } from "./Insignia";
 import { createClient } from "@/lib/supabase/server";
+import { AnimatedCountdownDemo } from "./animated-countdown-demo";
 
 export async function Hero() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   const beginHref = user ? "/chapters" : "/signup";
 
   return (
-    <section className="relative overflow-hidden section-pad pt-16 pb-24 sm:pt-20 sm:pb-32">
-      <div className="container-max grid items-center gap-16 lg:grid-cols-2">
+    <section className="relative overflow-hidden section-pad min-h-[calc(100dvh-5rem)] flex items-center justify-center py-10 md:py-20">
+      <div className="container-max grid items-center gap-10 lg:gap-16 lg:grid-cols-2 w-full">
         <div className="animate-fade-up">
           <span className="eyebrow rounded-full border border-gold/30 bg-gold/5 px-4 py-1.5">
             <span className="w-2 h-2 rounded-full bg-gold animate-pulse" />
@@ -40,9 +40,8 @@ export async function Hero() {
           </div>
         </div>
 
-        <div className="relative mx-auto hidden w-full max-w-md items-center justify-center md:flex lg:max-w-none">
-          <div className="absolute h-[420px] w-[420px] rounded-full bg-kingdom-green/[0.04]" />
-          <Insignia className="relative w-full max-w-[420px] animate-float drop-shadow-sm" />
+        <div className="relative mx-auto flex w-full max-w-md items-center justify-center lg:max-w-none mt-8 md:mt-0">
+          <AnimatedCountdownDemo />
         </div>
       </div>
 
