@@ -136,19 +136,6 @@ export function AnswerSubmission({ challengeId, points, chapterNumber }: AnswerS
 
   return (
     <div className="pt-8 border-t border-ivory-line">
-      {/* Section header */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-kingdom-green flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h10M4 14h6M4 18h4" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-xs font-bold tracking-widest text-ink-faint uppercase">Submit Your Answer</p>
-          <p className="text-xs text-ink-faint mt-0.5">Enter the flag or answer you&apos;ve discovered</p>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1 relative group">
           <input
@@ -186,6 +173,18 @@ export function AnswerSubmission({ challengeId, points, chapterNumber }: AnswerS
           )}
         </button>
       </form>
+
+      <div className="flex items-center gap-3 mt-5">
+        <div className="w-8 h-8 rounded-lg bg-kingdom-green flex items-center justify-center flex-shrink-0">
+          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h10M4 14h6M4 18h4" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-xs font-bold tracking-widest text-ink-faint uppercase">Submit Your Answer</p>
+          <p className="text-xs text-ink-faint mt-0.5">Enter the flag or answer you&apos;ve discovered</p>
+        </div>
+      </div>
 
       {/* Feedback */}
       {message && (
