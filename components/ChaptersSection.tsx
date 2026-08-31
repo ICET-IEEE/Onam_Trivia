@@ -15,7 +15,7 @@ export async function ChaptersSection() {
             <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl mb-4">
               FIRST TO COMPLETE. FIRST TO CLAIM.
             </h2>
-            <p className="text-ink-soft leading-relaxed whitespace-nowrap">
+            <p className="text-ink-soft leading-relaxed sm:whitespace-nowrap">
               The prize will be awarded to the first 2 participants who successfully complete all challenges.
             </p>
             <p>
