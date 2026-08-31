@@ -12,12 +12,18 @@ export async function LeaderboardPreview() {
 
   const { data: solvesData } = await supabase
     .from("user_solves")
-    .select("user_id, points_awarded, solved_at");
+    .select("user_id, points_awarded, solved_at, challenge_id");
+
+  const { count: totalChallenges } = await supabase
+    .from("challenges")
+    .select("id", { count: "exact", head: true })
+    .eq("is_published", true);
 
   const profiles = profilesData || [];
   const solves = solvesData || [];
+  const total = totalChallenges || 0;
 
-  const userMap: Record<string, { name: string; score: number; latestSolveTime: number }> = {};
+  const userMap: Record<string, { name: string; score: number; latestSolveTime: number; solvedSet: Set<string> }> = {};
 
   profiles.forEach((p) => {
     if (p.role !== "admin") {
@@ -26,6 +32,7 @@ export async function LeaderboardPreview() {
         name: validName,
         score: 0,
         latestSolveTime: 0,
+        solvedSet: new Set(),
       };
     }
   });
@@ -36,10 +43,12 @@ export async function LeaderboardPreview() {
         name: "",
         score: 0,
         latestSolveTime: 0,
+        solvedSet: new Set(),
       };
     }
     const entry = userMap[s.user_id];
     entry.score += s.points_awarded || 0;
+    entry.solvedSet.add(s.challenge_id);
     const time = new Date(s.solved_at).getTime();
     if (time > entry.latestSolveTime) {
       entry.latestSolveTime = time;
@@ -54,8 +63,12 @@ export async function LeaderboardPreview() {
       name: data.name || "Player",
       score: data.score,
       latestSolveTime: data.latestSolveTime,
+      completedAll: total > 0 ? data.solvedSet.size === total : false,
     }))
     .sort((a, b) => {
+      if (a.completedAll !== b.completedAll) {
+        return a.completedAll ? -1 : 1;
+      }
       if (b.score !== a.score) return b.score - a.score;
       if (a.latestSolveTime && b.latestSolveTime) return a.latestSolveTime - b.latestSolveTime;
       return a.name.localeCompare(b.name);
