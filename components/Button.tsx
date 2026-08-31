@@ -9,6 +9,8 @@ interface BaseProps {
   variant?: Variant;
   withArrow?: boolean;
   className?: string;
+  target?: string;
+  rel?: string;
 }
 
 const variantClasses: Record<Variant, string> = {
@@ -28,13 +30,15 @@ export function Button({
   withArrow = false,
   className = "",
   href,
+  target,
+  rel,
   ...rest
 }: BaseProps & { href?: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const classes = `${base} ${variantClasses[variant]} ${className}`;
 
   if (href) {
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} className={classes} target={target} rel={rel}>
         {children}
         {withArrow && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
       </Link>
