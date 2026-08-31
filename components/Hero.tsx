@@ -40,7 +40,7 @@ export async function Hero() {
           </div>
         </div>
 
-        <div className="relative mx-auto flex w-full max-w-md items-center justify-center lg:max-w-none">
+        <div className="relative mx-auto hidden w-full max-w-md items-center justify-center md:flex lg:max-w-none">
           <div className="absolute h-[420px] w-[420px] rounded-full bg-kingdom-green/[0.04]" />
           <Insignia className="relative w-full max-w-[420px] animate-float drop-shadow-sm" />
         </div>
