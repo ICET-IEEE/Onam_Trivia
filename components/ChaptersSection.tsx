@@ -13,10 +13,11 @@ export async function ChaptersSection() {
         <Reveal>
           <div className="mb-12 max-w-2xl">
             <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl mb-4">
-              The Path to Glory
+              FIRST TO COMPLETE. FIRST TO CLAIM.
             </h2>
             <p className="text-ink-soft leading-relaxed">
-              Complete chapters sequentially. Each chapter contains challenges that reveal lore and test your logic. Prove your worth.
+              The prize will be awarded to the first 2 participants who successfully complete all challenges.
+
             </p>
           </div>
         </Reveal>
