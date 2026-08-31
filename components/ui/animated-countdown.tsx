@@ -84,10 +84,10 @@ const sizeClasses: Record<CountdownSize, { container: string; unit: string; numb
     label: "text-[10px] sm:text-[11px]",
   },
   lg: {
-    container: "gap-3 p-3 sm:gap-4 sm:p-4",
-    unit: "min-w-[5.2rem] rounded-2xl px-4 py-4 sm:min-w-[6.5rem] sm:px-5 sm:py-5",
-    number: "text-4xl sm:text-5xl",
-    label: "text-[11px] sm:text-xs",
+    container: "gap-1.5 p-1.5 sm:gap-4 sm:p-4",
+    unit: "min-w-[4.6rem] rounded-xl px-1.5 py-2.5 sm:rounded-2xl sm:min-w-[6.5rem] sm:px-5 sm:py-5",
+    number: "text-[1.75rem] sm:text-5xl",
+    label: "text-[9px] sm:text-xs",
   },
 };
 
@@ -313,7 +313,7 @@ export function AnimatedCountdown({
     >
       <div
         className={cn(
-          "flex max-w-full items-stretch justify-center gap-2 sm:flex-wrap",
+          "flex max-w-full items-stretch justify-center gap-2 flex-wrap sm:flex-nowrap",
           showSeparators && "gap-0",
         )}
       >

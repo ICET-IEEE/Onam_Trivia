@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
-import { AnimatedCountdownDemo } from "@/components/animated-countdown-demo";
 import { IntroSection } from "@/components/IntroSection";
 import { ChaptersSection } from "@/components/ChaptersSection";
 import { ThreeSteps } from "@/components/ThreeSteps";
@@ -15,7 +14,6 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <AnimatedCountdownDemo />
         <IntroSection />
         <ChaptersSection />
         <ThreeSteps />
