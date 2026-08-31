@@ -14,21 +14,23 @@ import {
   Lightbulb,
   Music,
   Trophy,
+  Video,
 } from "lucide-react";
 
 const difficultyConfig: Record<string, { label: string; icon: React.ElementType }> = {
-  easy:   { label: "Easy",   icon: Star  },
-  medium: { label: "Medium", icon: Zap   },
-  hard:   { label: "Hard",   icon: Flame },
+  easy: { label: "Easy", icon: Star },
+  medium: { label: "Medium", icon: Zap },
+  hard: { label: "Hard", icon: Flame },
   expert: { label: "Expert", icon: Crown },
 };
 
 const typeConfig: Record<string, { label: string; icon: React.ElementType }> = {
-  text:   { label: "Text",   icon: BookOpen },
-  image:  { label: "Image",  icon: Shield   },
-  audio:  { label: "Audio",  icon: Music    },
-  trivia: { label: "Trivia", icon: Trophy   },
-  cipher: { label: "Cipher", icon: Zap      },
+  text: { label: "Text", icon: BookOpen },
+  image: { label: "Image", icon: Shield },
+  audio: { label: "Audio", icon: Music },
+  video: { label: "Video", icon: Video },
+  trivia: { label: "Trivia", icon: Trophy },
+  cipher: { label: "Cipher", icon: Zap },
 };
 
 export default async function ChallengeDetailPage({
@@ -60,7 +62,7 @@ export default async function ChallengeDetailPage({
   const { data: challenge } = await supabase
     .from("challenges")
     .select(
-      "id, title, description, question, type, difficulty, points, image_url, audio_url, hint, order_number"
+      "id, title, description, question, type, difficulty, points, image_url, audio_url, video_url, hint, order_number"
     )
     .eq("id", params.challengeId)
     .eq("chapter_id", chapter.id)
@@ -105,6 +107,19 @@ export default async function ChallengeDetailPage({
   const TypeIcon = typeEntry.icon;
 
   const challengeNum = String(challenge.order_number).padStart(2, "0");
+
+  let signedVideoUrl: string | null = null;
+  if (typeKey === "video" && challenge.video_url) {
+    const { data, error } = await supabase.storage
+      .from("challenge-videos")
+      .createSignedUrl(challenge.video_url, 3600);
+
+    if (data && data.signedUrl) {
+      signedVideoUrl = data.signedUrl;
+    } else {
+      console.error("Failed to generate signed URL for video:", error);
+    }
+  }
 
   return (
     <>
@@ -210,7 +225,7 @@ export default async function ChallengeDetailPage({
                 )}
 
                 {/* Audio */}
-                {challenge.audio_url && (
+                {challenge.audio_url && typeKey !== "video" && (
                   <div className="rounded-xl overflow-hidden border border-ivory-line bg-ivory-deep/30">
                     <div className="flex items-center gap-3 px-5 py-4 border-b border-ivory-line">
                       <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
@@ -226,6 +241,27 @@ export default async function ChallengeDetailPage({
                         Your browser does not support the audio element.
                       </audio>
                     </div>
+                  </div>
+                )}
+
+                {/* Video */}
+                {typeKey === "video" && signedVideoUrl && (
+                  <div className="rounded-xl overflow-hidden border border-ivory-line shadow-sm bg-black">
+                    <video
+                      controls
+                      playsInline
+                      className="w-full aspect-video outline-none"
+                    >
+                      <source src={signedVideoUrl} type="video/mp4" />
+                      <source src={signedVideoUrl} type="video/webm" />
+                      Your browser does not support the video element.
+                    </video>
+                  </div>
+                )}
+
+                {typeKey === "video" && challenge.video_url && !signedVideoUrl && (
+                  <div className="p-6 text-center text-rust bg-rust/10 rounded-xl border border-rust/20">
+                    Failed to load video content. Please try refreshing the page.
                   </div>
                 )}
 

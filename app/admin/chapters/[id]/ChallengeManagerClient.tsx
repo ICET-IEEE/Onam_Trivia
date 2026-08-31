@@ -39,9 +39,12 @@ export function ChallengeManagerClient({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioPreview, setAudioPreview] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -57,6 +60,7 @@ export function ChallengeManagerClient({
   const openForm = async (challenge?: Challenge) => {
     setImageFile(null);
     setAudioFile(null);
+    setVideoFile(null);
     if (challenge) {
       setEditingChallenge(challenge);
       
@@ -80,6 +84,7 @@ export function ChallengeManagerClient({
       });
       setImagePreview(challenge.image_url || null);
       setAudioPreview(challenge.audio_url || null);
+      setVideoPreview(challenge.video_url || null);
     } else {
       setEditingChallenge(null);
       setFormData({
@@ -96,6 +101,7 @@ export function ChallengeManagerClient({
       });
       setImagePreview(null);
       setAudioPreview(null);
+      setVideoPreview(null);
     }
     setError("");
     setSuccess("");
@@ -119,6 +125,14 @@ export function ChallengeManagerClient({
       const file = e.target.files[0];
       setAudioFile(file);
       setAudioPreview(file.name);
+    }
+  };
+
+  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setVideoFile(file);
+      setVideoPreview(file.name);
     }
   };
 
@@ -183,6 +197,35 @@ export function ChallengeManagerClient({
     return data.publicUrl;
   };
 
+  const uploadVideo = async (): Promise<string | null> => {
+    if (!videoFile) return editingChallenge?.video_url || null;
+    
+    // If there is an existing video, we should attempt to delete it first,
+    // or just let it be orphaned for now (or implement delete on success).
+    
+    const fileExt = videoFile.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `videos/${chapter.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('challenge-videos')
+      .upload(filePath, videoFile);
+
+    if (uploadError) {
+      throw new Error(`Video upload failed: ${uploadError.message}`);
+    }
+
+    // If editing and replacing, try to remove the old video from storage
+    if (editingChallenge && editingChallenge.video_url) {
+      const oldPath = editingChallenge.video_url;
+      // Fire and forget deletion of old video
+      supabase.storage.from('challenge-videos').remove([oldPath]);
+    }
+
+    // Return the raw path, not a signed/public URL
+    return filePath;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -206,6 +249,7 @@ export function ChallengeManagerClient({
     try {
       let imageUrl = null;
       let audioUrl = null;
+      let videoUrl = null;
       
       try {
         imageUrl = await uploadImage();
@@ -223,19 +267,35 @@ export function ChallengeManagerClient({
         return;
       }
 
+      try {
+        videoUrl = await uploadVideo();
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+        return;
+      }
+
       // Clear fields based on type to prevent orphaned data
       let finalImageUrl: string | null = imageUrl;
       let finalAudioUrl: string | null = audioUrl;
+      let finalVideoUrl: string | null = videoUrl;
       let finalQuestion: string | null = formData.question;
 
       if (formData.type === "photo_only") {
-        finalAudioUrl = null; // Clear audio for photo_only type
-        finalQuestion = null; // Clear question for photo_only type
+        finalAudioUrl = null;
+        finalVideoUrl = null;
+        finalQuestion = null;
       } else if (formData.type === "question_answer") {
-        finalImageUrl = null; // Clear image for question_answer type
-        finalAudioUrl = null; // Clear audio for question_answer type
+        finalImageUrl = null;
+        finalAudioUrl = null;
+        finalVideoUrl = null;
       } else if (formData.type === "photo_song") {
-        finalQuestion = null; // Clear question for photo_song type
+        finalVideoUrl = null;
+        finalQuestion = null;
+      } else if (formData.type === "video") {
+        finalImageUrl = null;
+        finalAudioUrl = null;
+        finalQuestion = null;
       }
 
       const payload = {
@@ -251,6 +311,7 @@ export function ChallengeManagerClient({
         order_number: formData.order_number,
         image_url: finalImageUrl,
         audio_url: finalAudioUrl,
+        video_url: finalVideoUrl,
       };
 
       let challengeId: string;
@@ -408,6 +469,7 @@ export function ChallengeManagerClient({
                     <td className="p-4 text-ink-soft capitalize">
                       {chal.type === 'photo_song' ? 'Photo + Song' : 
                        chal.type === 'photo_only' ? 'Photo Only' : 
+                       chal.type === 'video' ? 'Video' : 
                        chal.type === 'question_answer' ? 'Question & Answer' : 
                        chal.type.replace('_', ' ')}
                     </td>
@@ -529,11 +591,14 @@ export function ChallengeManagerClient({
                       setImagePreview(null);
                       setAudioFile(null);
                       setAudioPreview(null);
+                      setVideoFile(null);
+                      setVideoPreview(null);
                     }}
                     className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none" 
                   >
                     <option value="photo_song">Photo + Song</option>
                     <option value="photo_only">Photo Only</option>
+                    <option value="video">Video</option>
                     <option value="question_answer">Question & Answer</option>
                   </select>
                 </div>
@@ -647,6 +712,36 @@ export function ChallengeManagerClient({
                     onChange={(e) => setFormData({...formData, question: e.target.value})}
                     className="rounded-xl border border-ivory-line bg-white px-4 py-3 text-sm text-ink focus:border-gold focus:outline-none resize-none" 
                   />
+                </div>
+              )}
+
+              {formData.type === "video" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-ink">Challenge Video (MP4, WebM, MOV)</label>
+                  <input 
+                    type="file" 
+                    accept="video/mp4, video/webm, video/quicktime"
+                    ref={videoInputRef}
+                    onChange={handleVideoChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => videoInputRef.current?.click()}
+                      className="px-4 py-2 bg-ink/5 hover:bg-ink/10 text-ink rounded-lg text-sm font-medium transition-colors"
+                    >
+                      Choose Video
+                    </button>
+                    <span className="text-xs text-ink-soft">
+                      {videoFile ? videoFile.name : (videoPreview ? "Video attached" : "No video selected")}
+                    </span>
+                  </div>
+                  {videoPreview && !videoFile && (
+                    <div className="mt-2 text-xs text-kingdom-green font-medium">
+                      Current video path: {videoPreview}
+                    </div>
+                  )}
                 </div>
               )}
 
