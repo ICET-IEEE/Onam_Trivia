@@ -288,6 +288,9 @@ export function AdminDashboardClient({
           <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
             <div className="p-6 border-b border-ivory-line flex justify-between items-center">
               <h3 className="text-xl font-display font-bold text-ink">User Progress</h3>
+              <span className="text-sm font-medium text-ink-soft bg-ivory/50 px-3 py-1 rounded-full border border-ivory-line">
+                Total Users: {usersProgress.length}
+              </span>
             </div>
 
             <div className="overflow-x-auto">
