@@ -12,7 +12,7 @@ const links = [
   { href: "/#trial", label: "The Trial" },
   { href: "/#how-it-works", label: "How It Works" },
   { href: "/chapters", label: "Chapters" },
-  { href: "/leaderboard", label: "Leaderboard" },
+
 ];
 
 export function Navbar() {

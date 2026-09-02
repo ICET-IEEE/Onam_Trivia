@@ -85,7 +85,7 @@ export default async function DashboardPage() {
               <div className="relative overflow-hidden rounded-2xl border border-gold/30 bg-kingdom-green p-8 text-ivory">
                 <span className="eyebrow text-gold-light">Active Trial</span>
                 <h2 className="mt-3 text-2xl text-ivory">Continue Your Quest</h2>
-                <p className="mt-1.5 text-sm text-ivory/70">Solve challenges to climb the kingdom leaderboard.</p>
+                <p className="mt-1.5 text-sm text-ivory/70">Solve challenges to advance through the trial.</p>
                 <Button href="/chapters" variant="primary" className="mt-6 !bg-gold !text-kingdom-green hover:!bg-gold-light" withArrow>
                   Continue Trial
                 </Button>

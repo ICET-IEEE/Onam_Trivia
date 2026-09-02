@@ -4,7 +4,7 @@ import { IntroSection } from "@/components/IntroSection";
 import { ChaptersSection } from "@/components/ChaptersSection";
 import { ThreeSteps } from "@/components/ThreeSteps";
 import { TeamSection } from "@/components/TeamSection";
-import { LeaderboardPreview } from "@/components/LeaderboardPreview";
+
 import { FinalCTA } from "@/components/FinalCTA";
 import { Footer } from "@/components/Footer";
 import { WhatsAppModal } from "@/components/WhatsAppModal";
@@ -20,7 +20,7 @@ export default function Home() {
         <ChaptersSection />
         <ThreeSteps />
         {/*<TeamSection /> */}
-        <LeaderboardPreview />
+
         <FinalCTA />
       </main>
       <Footer />

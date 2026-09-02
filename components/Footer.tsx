@@ -4,7 +4,7 @@ import { Insignia } from "./Insignia";
 const links = [
   { href: "/", label: "Home" },
   { href: "/chapters", label: "Chapters" },
-  { href: "/leaderboard", label: "Leaderboard" },
+
   { href: "/signin", label: "Sign In" },
   { href: "/signup", label: "Sign Up" },
 ];
