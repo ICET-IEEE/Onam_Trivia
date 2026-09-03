@@ -91,12 +91,16 @@ export default async function AdminDashboard() {
 
   const usersProgress = Object.values(usersProgressMap).map((u) => {
     let chaptersCompleted = 0;
+    const completedChapterNumbers: string[] = [];
     if (chapters) {
       chapters.forEach((ch) => {
         const chapterChalls = challengesByChapter[ch.id] || [];
         if (chapterChalls.length > 0) {
           const allSolved = chapterChalls.every((cId) => u.solvedSet.has(cId));
-          if (allSolved) chaptersCompleted++;
+          if (allSolved) {
+            chaptersCompleted++;
+            completedChapterNumbers.push(ch.chapter_number);
+          }
         }
       });
     }
@@ -110,6 +114,7 @@ export default async function AdminDashboard() {
       challengesSolved: u.solvedSet.size,
       totalChallenges,
       chaptersCompleted,
+      completedChapterNumbers,
       totalChapters,
       mobileNumber: u.mobileNumber,
       email: u.email,

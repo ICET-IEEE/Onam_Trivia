@@ -72,6 +72,7 @@ export interface UserProgress {
   challengesSolved: number;
   totalChallenges: number;
   chaptersCompleted: number;
+  completedChapterNumbers?: string[];
   totalChapters: number;
   latestSolveTime?: number;
   mobileNumber?: string;

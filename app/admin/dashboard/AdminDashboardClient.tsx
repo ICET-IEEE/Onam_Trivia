@@ -15,7 +15,7 @@ export function AdminDashboardClient({
   initialUsersProgress?: UserProgress[];
   initialFirstSolvers?: FirstSolver[];
 }) {
-  const [activeTab, setActiveTab] = useState<"chapters" | "users" | "leaderboard" | "first-solvers">("chapters");
+  const [activeTab, setActiveTab] = useState<"chapters" | "users" | "leaderboard" | "first-solvers" | "days-completed">("chapters");
   const [chapters, setChapters] = useState<Chapter[]>(initialChapters);
   const [usersProgress, setUsersProgress] = useState<UserProgress[]>(initialUsersProgress);
   const [selectedUser, setSelectedUser] = useState<UserProgress | null>(null);
@@ -203,6 +203,15 @@ export function AdminDashboardClient({
           >
             First Solvers
           </button>
+          <button
+            onClick={() => setActiveTab("days-completed")}
+            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === "days-completed"
+                ? "border-kingdom-green text-kingdom-green"
+                : "border-transparent text-ink-soft hover:text-ink hover:border-ivory-line"
+              }`}
+          >
+            Days Completed
+          </button>
         </div>
 
         {success && (
@@ -371,6 +380,27 @@ export function AdminDashboardClient({
                   )}
                 </tbody>
               </table>
+            </div>
+          </section>
+        ) : activeTab === "days-completed" ? (
+          <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-display font-bold text-ink">Days Completed</h3>
+              <span className="text-sm font-medium text-ink-soft bg-ivory/50 px-3 py-1 rounded-full border border-ivory-line">
+                Total Users: {usersProgress.length}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((chapterNum) => {
+                const count = usersProgress.filter((u) => u.completedChapterNumbers?.includes(String(chapterNum))).length;
+                return (
+                  <div key={chapterNum} className="bg-ivory/50 rounded-xl p-6 border border-ivory-line shadow-sm flex flex-col items-center justify-center">
+                    <span className="text-sm font-semibold text-ink-faint uppercase tracking-wider mb-2">Chapter {chapterNum}</span>
+                    <span className="text-4xl font-display font-bold text-kingdom-green">{count}</span>
+                    <span className="text-sm font-medium text-ink-soft mt-2">Conquered</span>
+                  </div>
+                );
+              })}
             </div>
           </section>
         ) : (
