@@ -296,9 +296,9 @@ export function AdminDashboardClient({
         ) : activeTab === "users" ? (
           <section className="bg-white rounded-xl border border-ivory-line shadow-sm overflow-hidden">
             <div className="p-6 border-b border-ivory-line flex justify-between items-center">
-              <h3 className="text-xl font-display font-bold text-ink">User Progress</h3>
+              <h3 className="text-xl font-display font-bold text-ink">Player Progress</h3>
               <span className="text-sm font-medium text-ink-soft bg-ivory/50 px-3 py-1 rounded-full border border-ivory-line">
-                Total Users: {usersProgress.length}
+                Total Players: {usersProgress.length}
               </span>
             </div>
 
@@ -387,7 +387,7 @@ export function AdminDashboardClient({
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-display font-bold text-ink">Days Completed</h3>
               <span className="text-sm font-medium text-ink-soft bg-ivory/50 px-3 py-1 rounded-full border border-ivory-line">
-                Total Users: {usersProgress.length}
+                Total Players: {usersProgress.length}
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
