@@ -378,7 +378,7 @@ export default function SignUpPage() {
       );
 
       setLoading(false);
-      
+
       setTimeout(() => {
         router.push("/?signup=success");
       }, 1500);
@@ -403,122 +403,26 @@ export default function SignUpPage() {
   return (
     <>
       <AuthShell
-      title="Enter the Trial."
-      subtitle="Create an account to begin your ascent."
-      footer={
-        <>
-          Already have an account?{" "}
-          <Link
-            href="/signin"
-            className="font-semibold text-kingdom-green hover:text-gold-dim"
-          >
-            Sign in
-          </Link>
-        </>
-      }
-    >
-      <form
-        onSubmit={handleSignUp}
-        className="flex flex-col gap-2.5"
+        title=""
+        subtitle=""
+        footer={
+          <>
+            Already have an account?{" "}
+            <Link
+              href="/signin"
+              className="font-semibold text-kingdom-green hover:text-gold-dim"
+            >
+              Sign in
+            </Link>
+          </>
+        }
       >
-        {/* Full Name */}
-        <FormField
-          label="Full Name"
-          type="text"
-          placeholder="Your name"
-          autoComplete="name"
-          value={fullName}
-          onChange={(event) =>
-            setFullName(event.target.value)
-          }
-        />
-
-        {/* Email */}
-        <FormField
-          label="Email"
-          type="email"
-          placeholder="you@kingdom.com"
-          autoComplete="email"
-          value={email}
-          onChange={(event) =>
-            setEmail(event.target.value)
-          }
-        />
-
-        {/* Mobile */}
-        <FormField
-          label="Mobile Number"
-          type="tel"
-          placeholder="+91 98765 43210"
-          autoComplete="tel"
-          value={mobileNumber}
-          onChange={(event) =>
-            setMobileNumber(event.target.value)
-          }
-        />
-
-        {/* College */}
-        <CollegeCombobox
-          value={collegeName}
-          collegeId={collegeId}
-          onChange={(name, id) => {
-            setCollegeName(name);
-            setCollegeId(id);
-          }}
-        />
-
-        {/* Password */}
-        <FormField
-          label="Password"
-          type="password"
-          placeholder="Create a password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(event) =>
-            setPassword(event.target.value)
-          }
-        />
-
-        {/* Confirm Password */}
-        <FormField
-          label="Confirm Password"
-          type="password"
-          placeholder="Re-enter your password"
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={(event) =>
-            setConfirmPassword(
-              event.target.value
-            )
-          }
-        />
-
-        {/* Error */}
-        {error && (
-          <p className="mt-2 text-sm text-red-600">
-            {error}
+        <div className="py-8 text-center flex flex-col items-center justify-center">
+          <h3 className="text-xl font-bold text-kingdom-green mb-2">Registration Closed</h3>
+          <p className="text-gold-dim">
+            We are no longer accepting new registrations for this trial.
           </p>
-        )}
-
-        {/* Success */}
-        {success && (
-          <p className="mt-2 text-sm text-kingdom-green">
-            {success}
-          </p>
-        )}
-
-        {/* Submit */}
-        <Button
-          type="submit"
-          variant="primary"
-          className="mt-2 w-full"
-          disabled={loading}
-        >
-          {loading
-            ? "Creating Account..."
-            : "Create Your Account"}
-        </Button>
-      </form>
+        </div>
       </AuthShell>
     </>
   );
